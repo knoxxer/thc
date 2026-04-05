@@ -1,7 +1,9 @@
 export interface Player {
   id: string;
   name: string;
+  display_name: string;
   slug: string;
+  email: string | null;
   ghin_number: string | null;
   handicap_index: number | null;
   handicap_updated_at: string | null;

@@ -69,7 +69,7 @@ export default async function PlayerPage({
 
       {/* Player header */}
       <div className="mt-6 mb-8">
-        <h1 className="text-3xl font-bold">{player.name}</h1>
+        <h1 className="text-3xl font-bold">{player.display_name}</h1>
         <div className="flex items-center gap-4 mt-2 text-muted text-sm">
           {player.handicap_index != null && (
             <span>HCP: {player.handicap_index}</span>

@@ -9,14 +9,12 @@ import Link from "next/link";
 
 export default function NewRoundPage() {
   const router = useRouter();
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [season, setSeason] = useState<Season | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [authed, setAuthed] = useState(false);
 
-  const [playerId, setPlayerId] = useState("");
   const [playedAt, setPlayedAt] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -37,42 +35,51 @@ export default function NewRoundPage() {
       const supabase = createClient();
 
       // Check auth
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.push("/login");
         return;
       }
-      setAuthed(true);
 
-      const [{ data: p }, { data: s }] = await Promise.all([
-        supabase
-          .from("players")
-          .select("*")
-          .eq("is_active", true)
-          .order("name"),
-        supabase
-          .from("seasons")
-          .select("*")
-          .eq("is_active", true)
-          .single<Season>(),
-      ]);
-      setPlayers((p as Player[]) || []);
+      // Find the player matching the logged-in user's email
+      const { data: player } = await supabase
+        .from("players")
+        .select("*")
+        .eq("email", user.email)
+        .single<Player>();
+
+      if (!player) {
+        // Logged in but not a registered player
+        setLoading(false);
+        return;
+      }
+
+      setCurrentPlayer(player);
+
+      const { data: s } = await supabase
+        .from("seasons")
+        .select("*")
+        .eq("is_active", true)
+        .single<Season>();
+
       setSeason(s as Season | null);
       setLoading(false);
     }
     load();
-  }, []);
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!season || !playerId || grossScore === "" || courseHandicap === "")
+    if (!season || !currentPlayer || grossScore === "" || courseHandicap === "")
       return;
 
     setSubmitting(true);
     const supabase = createClient();
 
     const { error } = await supabase.from("rounds").insert({
-      player_id: playerId,
+      player_id: currentPlayer.id,
       season_id: season.id,
       played_at: playedAt,
       course_name: courseName,
@@ -95,10 +102,23 @@ export default function NewRoundPage() {
     }
   }
 
-  if (loading || !authed) {
+  if (loading) {
     return (
       <div className="max-w-lg mx-auto px-4 py-8 text-center text-muted">
         Loading...
+      </div>
+    );
+  }
+
+  if (!currentPlayer) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-16 text-center">
+        <p className="text-2xl mb-4">🚫</p>
+        <h2 className="text-xl font-bold mb-2">Not a registered player</h2>
+        <p className="text-muted">
+          Your Google account isn&apos;t linked to a Homie Cup player. Talk to
+          Brian K.
+        </p>
       </div>
     );
   }
@@ -131,27 +151,12 @@ export default function NewRoundPage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-gold">Post a Score</h1>
+      <h1 className="text-3xl font-bold mb-2 text-gold">Post a Score</h1>
+      <p className="text-muted mb-8">
+        Posting as <span className="text-foreground font-medium">{currentPlayer.display_name}</span>
+      </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Player */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Player</label>
-          <select
-            value={playerId}
-            onChange={(e) => setPlayerId(e.target.value)}
-            required
-            className="w-full bg-surface border border-surface-light rounded-md px-3 py-2 text-foreground focus:outline-none focus:border-accent"
-          >
-            <option value="">Select player...</option>
-            {players.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* Date */}
         <div>
           <label className="block text-sm font-medium mb-1">Date Played</label>
@@ -254,7 +259,7 @@ export default function NewRoundPage() {
 
         <button
           type="submit"
-          disabled={submitting || !playerId || grossScore === "" || courseHandicap === ""}
+          disabled={submitting || grossScore === "" || courseHandicap === ""}
           className="w-full bg-accent hover:bg-accent-light disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-md transition-colors font-medium"
         >
           {submitting ? "Posting..." : "Post Score"}

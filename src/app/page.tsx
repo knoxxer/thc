@@ -62,7 +62,7 @@ export default async function Home() {
         <div className="mt-6 text-center">
           <p className="text-sm text-muted">
             Still waiting on:{" "}
-            {playersWithoutRounds.map((p) => p.name).join(", ")}
+            {playersWithoutRounds.map((p) => p.display_name).join(", ")}
           </p>
         </div>
       )}

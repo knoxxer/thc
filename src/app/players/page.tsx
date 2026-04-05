@@ -27,7 +27,7 @@ export default async function PlayersPage() {
           >
             <div className="text-3xl mb-3">🏌️</div>
             <h2 className="font-semibold group-hover:text-gold transition-colors">
-              {player.name}
+              {player.display_name}
             </h2>
             {player.handicap_index != null && (
               <p className="text-sm text-muted mt-1">
