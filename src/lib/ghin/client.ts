@@ -78,6 +78,12 @@ export interface GhinGolfer {
   status: string;
 }
 
+export interface GhinHoleDetail {
+  hole_number: number;
+  par: number;
+  adjusted_gross_score: number;
+}
+
 export interface GhinScore {
   id: number;
   played_at: string;
@@ -91,6 +97,7 @@ export interface GhinScore {
   score_type: string;
   course_handicap: string | number;
   net_score: number;
+  hole_details?: GhinHoleDetail[];
 }
 
 export async function lookupGolfer(ghinNumber: number): Promise<GhinGolfer | null> {

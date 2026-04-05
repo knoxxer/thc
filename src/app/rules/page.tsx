@@ -301,8 +301,8 @@ export default function RulesPage() {
               What happens if two players tie?
             </p>
             <p className="text-muted mt-1">
-              Tiebreaker goes to the player with the single best round. If still
-              tied, most rounds played wins.
+              Tiebreaker goes to the player with the best single round (lowest
+              net vs par, not capped at 15). If still tied, most rounds played wins.
             </p>
           </div>
           <div>

@@ -38,9 +38,14 @@ export default function LeaderboardTable({
     );
   }
 
-  const sorted = [...standings].sort(
-    (a, b) => b.best_n_points - a.best_n_points
-  );
+  const sorted = [...standings].sort((a, b) => {
+    // Primary: best N points (descending)
+    if (b.best_n_points !== a.best_n_points) return b.best_n_points - a.best_n_points;
+    // Tiebreaker 1: best single round net vs par (lower is better)
+    if (a.best_net_vs_par !== b.best_net_vs_par) return a.best_net_vs_par - b.best_net_vs_par;
+    // Tiebreaker 2: most rounds played (descending)
+    return b.total_rounds - a.total_rounds;
+  });
 
   return (
     <>

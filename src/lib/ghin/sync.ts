@@ -81,7 +81,13 @@ export async function syncPlayer(
       const courseHandicap = typeof score.course_handicap === 'string'
         ? parseInt(score.course_handicap, 10)
         : score.course_handicap;
-      const par = 72;
+
+      // Derive par from hole details if available, otherwise default to 72
+      let par = 72;
+      if (score.hole_details && score.hole_details.length > 0) {
+        par = score.hole_details.reduce((sum, h) => sum + h.par, 0);
+      }
+
       const netVsPar = score.adjusted_gross_score - courseHandicap - par;
       const points = calculatePoints(netVsPar);
 
