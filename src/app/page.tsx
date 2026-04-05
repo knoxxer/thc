@@ -33,18 +33,18 @@ export default async function Home() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
       {/* Hero */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-8 sm:mb-12">
         <Image
           src="/logo.png"
           alt="The Homie Cup"
           width={120}
           height={120}
-          className="mx-auto mb-4 rounded-full"
+          className="mx-auto mb-3 sm:mb-4 rounded-full w-20 h-20 sm:w-[120px] sm:h-[120px]"
           priority
         />
-        <h1 className="text-4xl md:text-5xl font-bold mb-3 text-white">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-3 text-white">
           Season Standings
         </h1>
         {season && (

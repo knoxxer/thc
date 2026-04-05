@@ -15,7 +15,7 @@ export default function RulesPage() {
       </h1>
 
       {/* Season Rules */}
-      <div className="bg-surface rounded-xl border border-surface-light p-6 mb-6">
+      <div className="bg-surface rounded-xl border border-surface-light p-4 sm:p-6 mb-6">
         <h2 className="font-bold text-white mb-4 text-xl">Season Format</h2>
         <ul className="space-y-3 text-sm">
           <li className="flex items-start gap-3">
@@ -73,7 +73,7 @@ export default function RulesPage() {
       </div>
 
       {/* Points Table */}
-      <div className="bg-surface rounded-xl border border-surface-light p-6 mb-6">
+      <div className="bg-surface rounded-xl border border-surface-light p-4 sm:p-6 mb-6">
         <h2 className="font-bold text-white mb-2 text-xl">Points Per Round</h2>
         <p className="text-sm text-muted mb-4">
           Points are based on your{" "}
@@ -223,58 +223,42 @@ export default function RulesPage() {
       </div>
 
       {/* Examples */}
-      <div className="bg-surface rounded-xl border border-surface-light p-6 mb-6">
+      <div className="bg-surface rounded-xl border border-surface-light p-4 sm:p-6 mb-6">
         <h2 className="font-bold text-white mb-4 text-xl">Example Rounds</h2>
-        <div className="space-y-3 text-sm">
-          <div className="flex items-center justify-between py-2 border-b border-surface-light/30">
-            <div>
-              <span className="text-foreground">
-                20-handicap shoots 89 on a par 72
-              </span>
-              <span className="text-muted ml-2">
-                → net 69 → 3 under
-              </span>
+        <div className="space-y-4 text-sm">
+          <div className="py-2 border-b border-surface-light/30">
+            <div className="flex items-center justify-between">
+              <span className="text-foreground">20-hcp shoots 89 (par 72)</span>
+              <span className="text-gold font-bold">13 pts</span>
             </div>
-            <span className="text-gold font-bold">13 pts</span>
+            <p className="text-xs text-muted mt-1">89 - 20 = net 69 → 3 under par</p>
           </div>
-          <div className="flex items-center justify-between py-2 border-b border-surface-light/30">
-            <div>
-              <span className="text-foreground">
-                10-handicap shoots 82 on a par 72
-              </span>
-              <span className="text-muted ml-2">
-                → net 72 → even
-              </span>
+          <div className="py-2 border-b border-surface-light/30">
+            <div className="flex items-center justify-between">
+              <span className="text-foreground">10-hcp shoots 82 (par 72)</span>
+              <span className="text-gold font-bold">10 pts</span>
             </div>
-            <span className="text-gold font-bold">10 pts</span>
+            <p className="text-xs text-muted mt-1">82 - 10 = net 72 → even par</p>
           </div>
-          <div className="flex items-center justify-between py-2 border-b border-surface-light/30">
-            <div>
-              <span className="text-foreground">
-                30-handicap shoots 107 on a par 72
-              </span>
-              <span className="text-muted ml-2">
-                → net 77 → 5 over
-              </span>
+          <div className="py-2 border-b border-surface-light/30">
+            <div className="flex items-center justify-between">
+              <span className="text-foreground">30-hcp shoots 107 (par 72)</span>
+              <span className="text-gold font-bold">5 pts</span>
             </div>
-            <span className="text-gold font-bold">5 pts</span>
+            <p className="text-xs text-muted mt-1">107 - 30 = net 77 → 5 over par</p>
           </div>
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <span className="text-foreground">
-                5-handicap shoots 71 on a par 72
-              </span>
-              <span className="text-muted ml-2">
-                → net 66 → 6 under
-              </span>
+          <div className="py-2">
+            <div className="flex items-center justify-between">
+              <span className="text-foreground">5-hcp shoots 71 (par 72)</span>
+              <span className="text-gold font-bold">15 pts</span>
             </div>
-            <span className="text-gold font-bold">15 pts (capped)</span>
+            <p className="text-xs text-muted mt-1">71 - 5 = net 66 → 6 under (capped at 15)</p>
           </div>
         </div>
       </div>
 
       {/* FAQ */}
-      <div className="bg-surface rounded-xl border border-surface-light p-6">
+      <div className="bg-surface rounded-xl border border-surface-light p-4 sm:p-6">
         <h2 className="font-bold text-white mb-4 text-xl">FAQ</h2>
         <div className="space-y-4 text-sm">
           <div>

@@ -14,7 +14,6 @@ function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-    year: "numeric",
   });
 }
 
@@ -59,7 +58,7 @@ export default async function PlayerPage({
   const isEligible = rounds.length >= (season?.min_rounds || 5);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
       <Link
         href="/"
         className="text-sm text-muted hover:text-foreground transition-colors"
@@ -68,42 +67,41 @@ export default async function PlayerPage({
       </Link>
 
       {/* Player header */}
-      <div className="mt-6 mb-8">
-        <h1 className="text-3xl font-bold">{player.display_name}</h1>
-        <div className="flex items-center gap-4 mt-2 text-muted text-sm">
+      <div className="mt-4 sm:mt-6 mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">{player.display_name}</h1>
+        <div className="flex items-center gap-4 mt-1 text-muted text-sm">
           {player.handicap_index != null && (
             <span>HCP: {player.handicap_index}</span>
           )}
-          {player.ghin_number && <span>GHIN: {player.ghin_number}</span>}
         </div>
       </div>
 
       {/* Season summary */}
       {season && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-surface rounded-xl border border-surface-light p-4">
-            <p className="text-sm text-muted">Season Points</p>
-            <p className="text-2xl font-bold text-gold">{totalPoints}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-surface rounded-xl border border-surface-light p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-muted">Points</p>
+            <p className="text-xl sm:text-2xl font-bold text-gold">{totalPoints}</p>
           </div>
-          <div className="bg-surface rounded-xl border border-surface-light p-4">
-            <p className="text-sm text-muted">Rounds Played</p>
-            <p className="text-2xl font-bold">{rounds.length}</p>
+          <div className="bg-surface rounded-xl border border-surface-light p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-muted">Rounds</p>
+            <p className="text-xl sm:text-2xl font-bold">{rounds.length}</p>
           </div>
-          <div className="bg-surface rounded-xl border border-surface-light p-4">
-            <p className="text-sm text-muted">Best Round</p>
-            <p className="text-2xl font-bold">
+          <div className="bg-surface rounded-xl border border-surface-light p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-muted">Best Round</p>
+            <p className="text-xl sm:text-2xl font-bold">
               {rounds.length > 0
                 ? `${Math.max(...rounds.map((r) => r.points || 0))} pts`
                 : "—"}
             </p>
           </div>
-          <div className="bg-surface rounded-xl border border-surface-light p-4">
-            <p className="text-sm text-muted">Status</p>
-            <p className="text-2xl font-bold">
+          <div className="bg-surface rounded-xl border border-surface-light p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-muted">Status</p>
+            <p className="text-xl sm:text-2xl font-bold">
               {isEligible ? (
                 <span className="text-accent-light">Eligible</span>
               ) : (
-                <span className="text-muted">
+                <span className="text-muted text-lg sm:text-2xl">
                   {(season?.min_rounds || 5) - rounds.length} more
                 </span>
               )}
@@ -115,68 +113,102 @@ export default async function PlayerPage({
       {/* Round history */}
       <div className="bg-surface rounded-xl border border-surface-light overflow-hidden">
         <div className="px-4 py-3 border-b border-surface-light">
-          <h2 className="font-semibold text-lg">Round History</h2>
+          <h2 className="font-semibold text-base sm:text-lg">Round History</h2>
         </div>
         {rounds.length === 0 ? (
           <div className="p-8 text-center text-muted">
             No rounds posted yet this season.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-surface-light text-muted text-sm">
-                  <th className="text-left py-3 px-3">Date</th>
-                  <th className="text-left py-3 px-3">Course</th>
-                  <th className="text-center py-3 px-3">Gross</th>
-                  <th className="text-center py-3 px-3">HCP</th>
-                  <th className="text-center py-3 px-3">Net</th>
-                  <th className="text-center py-3 px-3">vs Par</th>
-                  <th className="text-right py-3 px-3">Points</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rounds.map((round) => {
-                  const isTop10 = best10.some((r) => r.id === round.id);
-                  return (
-                    <tr
-                      key={round.id}
-                      className={`border-b border-surface-light/50 ${
-                        isTop10 ? "bg-surface-light/20" : "opacity-60"
-                      }`}
-                    >
-                      <td className="py-3 px-3 text-sm">
-                        {formatDate(round.played_at)}
-                      </td>
-                      <td className="py-3 px-3 text-sm">
-                        {round.course_name}
-                      </td>
-                      <td className="py-3 px-3 text-center text-sm">
-                        {round.gross_score}
-                      </td>
-                      <td className="py-3 px-3 text-center text-sm text-muted">
-                        {round.course_handicap}
-                      </td>
-                      <td className="py-3 px-3 text-center text-sm font-medium">
-                        {round.net_score}
-                      </td>
-                      <td className="py-3 px-3 text-center text-sm">
-                        {formatNetVsPar(round.net_vs_par)}
-                      </td>
-                      <td className="py-3 px-3 text-right font-bold text-gold">
+          <>
+            {/* Mobile: card layout */}
+            <div className="sm:hidden divide-y divide-surface-light/50">
+              {rounds.map((round) => {
+                const isTop10 = best10.some((r) => r.id === round.id);
+                return (
+                  <div
+                    key={round.id}
+                    className={`px-4 py-3 ${
+                      isTop10 ? "" : "opacity-50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium">{round.course_name}</span>
+                      <span className="text-lg font-bold text-gold tabular-nums">
                         {round.points}
-                        {isTop10 && (
-                          <span className="ml-1 text-xs text-accent-light">
-                            *
-                          </span>
+                        {isTop10 && rounds.length > 10 && (
+                          <span className="ml-1 text-xs text-accent-light">*</span>
                         )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </span>
+                    </div>
+                    <div className="flex gap-3 text-xs text-muted">
+                      <span>{formatDate(round.played_at)}</span>
+                      <span>Gross {round.gross_score}</span>
+                      <span>Net {round.net_score}</span>
+                      <span>{formatNetVsPar(round.net_vs_par)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-surface-light text-muted text-xs uppercase tracking-wider">
+                    <th className="text-left py-3 px-3">Date</th>
+                    <th className="text-left py-3 px-3">Course</th>
+                    <th className="text-center py-3 px-3">Gross</th>
+                    <th className="text-center py-3 px-3">HCP</th>
+                    <th className="text-center py-3 px-3">Net</th>
+                    <th className="text-center py-3 px-3">vs Par</th>
+                    <th className="text-right py-3 px-3">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rounds.map((round) => {
+                    const isTop10 = best10.some((r) => r.id === round.id);
+                    return (
+                      <tr
+                        key={round.id}
+                        className={`border-b border-surface-light/50 ${
+                          isTop10 ? "bg-surface-light/20" : "opacity-60"
+                        }`}
+                      >
+                        <td className="py-3 px-3 text-sm">
+                          {formatDate(round.played_at)}
+                        </td>
+                        <td className="py-3 px-3 text-sm">
+                          {round.course_name}
+                        </td>
+                        <td className="py-3 px-3 text-center text-sm">
+                          {round.gross_score}
+                        </td>
+                        <td className="py-3 px-3 text-center text-sm text-muted">
+                          {round.course_handicap}
+                        </td>
+                        <td className="py-3 px-3 text-center text-sm font-medium">
+                          {round.net_score}
+                        </td>
+                        <td className="py-3 px-3 text-center text-sm">
+                          {formatNetVsPar(round.net_vs_par)}
+                        </td>
+                        <td className="py-3 px-3 text-right font-bold text-gold">
+                          {round.points}
+                          {isTop10 && rounds.length > 10 && (
+                            <span className="ml-1 text-xs text-accent-light">
+                              *
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
         {rounds.length > 10 && (
           <div className="px-4 py-2 text-xs text-muted border-t border-surface-light">
