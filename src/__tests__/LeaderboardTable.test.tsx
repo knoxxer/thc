@@ -11,7 +11,7 @@ vi.mock("next/link", () => ({
 }));
 
 // Mock useDesign
-const mockDesign = { design: "classic" as const, toggle: vi.fn() };
+const mockDesign: { design: string; toggle: ReturnType<typeof vi.fn> } = { design: "classic", toggle: vi.fn() };
 vi.mock("@/components/ui/DesignToggle", () => ({
   useDesign: () => mockDesign,
 }));
@@ -27,6 +27,7 @@ const mockStandings: SeasonStanding[] = [
     best_net_vs_par: -3,
     best_round_points: 13,
     handicap_index: 15.2,
+    avatar_url: null,
     is_eligible: true,
   },
   {
@@ -39,6 +40,7 @@ const mockStandings: SeasonStanding[] = [
     best_net_vs_par: -1,
     best_round_points: 11,
     handicap_index: 20.0,
+    avatar_url: null,
     is_eligible: true,
   },
   {
@@ -51,6 +53,7 @@ const mockStandings: SeasonStanding[] = [
     best_net_vs_par: 0,
     best_round_points: 10,
     handicap_index: 10.5,
+    avatar_url: null,
     is_eligible: true,
   },
 ];
