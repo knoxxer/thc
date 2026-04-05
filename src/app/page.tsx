@@ -53,7 +53,7 @@ export default async function Home() {
           </p>
         )}
         {season && (
-          <p className="text-muted/60 text-sm mt-1">
+          <p className="text-muted text-sm mt-1">
             Best {season.top_n_rounds} rounds count &middot; Min {season.min_rounds} to qualify
           </p>
         )}
@@ -64,15 +64,18 @@ export default async function Home() {
         <LeaderboardTable standings={standings} />
       </div>
 
-      {/* Players who haven't posted yet */}
-      {playersWithoutRounds.length > 0 && (
-        <div className="mt-6 text-center">
+      {/* Last updated + players who haven't posted */}
+      <div className="mt-6 text-center space-y-2">
+        <p className="text-xs text-muted">
+          Updated {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+        </p>
+        {playersWithoutRounds.length > 0 && (
           <p className="text-sm text-muted">
             Still waiting on:{" "}
             {playersWithoutRounds.map((p) => p.display_name).join(", ")}
           </p>
-        </div>
-      )}
+        )}
+      </div>
 
     </div>
   );

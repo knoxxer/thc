@@ -23,7 +23,7 @@ export default async function PlayersPage() {
           <Link
             key={player.id}
             href={`/players/${player.slug}`}
-            className="bg-surface rounded-xl border border-surface-light p-5 hover:border-accent-light transition-colors group"
+            className="bg-surface rounded-xl border border-surface-light p-4 sm:p-5 hover:border-accent-light transition-all active:scale-[0.98] md:hover:-translate-y-0.5 group"
           >
             <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center text-white font-bold mb-3">
               {player.display_name.charAt(0)}

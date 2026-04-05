@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { calculatePoints } from "@/lib/points";
 import { Player, Season } from "@/lib/types";
+import { useDesign } from "@/components/ui/DesignToggle";
 import Link from "next/link";
 
 export default function NewRoundPage() {
   const router = useRouter();
+  const { design } = useDesign();
+  const v2 = design === "v2";
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [season, setSeason] = useState<Season | null>(null);
   const [loading, setLoading] = useState(true);
@@ -159,8 +162,9 @@ export default function NewRoundPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Date */}
         <div>
-          <label className="block text-sm font-medium mb-1">Date Played</label>
+          <label htmlFor="played-at" className="block text-sm font-medium mb-1">Date Played</label>
           <input
+            id="played-at"
             type="date"
             value={playedAt}
             onChange={(e) => setPlayedAt(e.target.value)}
@@ -171,8 +175,9 @@ export default function NewRoundPage() {
 
         {/* Course */}
         <div>
-          <label className="block text-sm font-medium mb-1">Course Name</label>
+          <label htmlFor="course-name" className="block text-sm font-medium mb-1">Course Name</label>
           <input
+            id="course-name"
             type="text"
             value={courseName}
             onChange={(e) => setCourseName(e.target.value)}
@@ -184,8 +189,9 @@ export default function NewRoundPage() {
 
         {/* Par */}
         <div>
-          <label className="block text-sm font-medium mb-1">Course Par</label>
+          <label htmlFor="course-par" className="block text-sm font-medium mb-1">Course Par</label>
           <input
+            id="course-par"
             type="number"
             value={par}
             onChange={(e) => setPar(Number(e.target.value))}
@@ -198,8 +204,9 @@ export default function NewRoundPage() {
 
         {/* Gross Score */}
         <div>
-          <label className="block text-sm font-medium mb-1">Gross Score</label>
+          <label htmlFor="gross-score" className="block text-sm font-medium mb-1">Gross Score</label>
           <input
+            id="gross-score"
             type="number"
             value={grossScore}
             onChange={(e) =>
@@ -215,13 +222,14 @@ export default function NewRoundPage() {
 
         {/* Course Handicap */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label htmlFor="course-handicap" className="block text-sm font-medium mb-1">
             Course Handicap
           </label>
-          <p className="text-xs text-muted mb-1">
+          <p className="text-xs text-muted mb-1" id="handicap-help">
             Your course handicap for the tees you played (check your GHIN app)
           </p>
           <input
+            id="course-handicap"
             type="number"
             value={courseHandicap}
             onChange={(e) =>
@@ -231,6 +239,7 @@ export default function NewRoundPage() {
             min={-5}
             max={54}
             placeholder="e.g. 18"
+            aria-describedby="handicap-help"
             className="w-full bg-surface border border-surface-light rounded-md px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-accent"
           />
         </div>
@@ -260,7 +269,11 @@ export default function NewRoundPage() {
         <button
           type="submit"
           disabled={submitting || grossScore === "" || courseHandicap === ""}
-          className="w-full bg-accent hover:bg-accent-light disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-md transition-colors font-medium"
+          className={`w-full disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-md transition-colors font-medium ${
+            v2
+              ? "bg-gold hover:bg-gold-light text-background"
+              : "bg-accent hover:bg-accent-light text-white"
+          }`}
         >
           {submitting ? "Posting..." : "Post Score"}
         </button>

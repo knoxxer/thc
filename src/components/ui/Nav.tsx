@@ -3,10 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { DesignSwitch, useDesign } from "@/components/ui/DesignToggle";
 import type { User } from "@supabase/supabase-js";
 
 export default function Nav() {
+  const pathname = usePathname();
+  const { design } = useDesign();
+  const v2 = design === "v2";
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -54,15 +59,16 @@ export default function Nav() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6 text-sm">
-          <Link href="/" className="text-white/70 hover:text-white transition-colors">
+          <Link href="/" className={`transition-colors ${pathname === "/" ? "text-white font-medium" : "text-white/80 hover:text-white"}`}>
             Leaderboard
           </Link>
-          <Link href="/rules" className="text-white/70 hover:text-white transition-colors">
+          <Link href="/rules" className={`transition-colors ${pathname === "/rules" ? "text-white font-medium" : "text-white/80 hover:text-white"}`}>
             Rules
           </Link>
-          <Link href="/players" className="text-white/70 hover:text-white transition-colors">
+          <Link href="/players" className={`transition-colors ${pathname.startsWith("/players") ? "text-white font-medium" : "text-white/80 hover:text-white"}`}>
             Players
           </Link>
+          <DesignSwitch />
           {!loading && (
             <>
               {user ? (
@@ -92,11 +98,15 @@ export default function Nav() {
           )}
         </div>
 
-        {/* Mobile hamburger */}
+        {/* v2 mobile: show design switch inline since no hamburger */}
+        {v2 && <div className="md:hidden"><DesignSwitch /></div>}
+
+        {/* Mobile hamburger (hidden in v2 — bottom tabs replace it) */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden text-white/70 hover:text-white p-1"
+          className={`md:hidden text-white/70 hover:text-white p-2 min-h-[44px] min-w-[44px] flex items-center justify-center ${v2 ? "hidden" : ""}`}
           aria-label="Menu"
+          aria-expanded={menuOpen}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {menuOpen ? (
@@ -108,18 +118,21 @@ export default function Nav() {
         </button>
       </div>
 
-      {/* Mobile menu */}
-      {menuOpen && (
+      {/* Mobile menu (classic only — v2 uses bottom tabs) */}
+      {menuOpen && !v2 && (
         <div className="md:hidden border-t border-surface-light bg-accent/95 px-4 py-3 space-y-3">
-          <Link href="/" onClick={() => setMenuOpen(false)} className="block text-white/80 hover:text-white text-sm">
+          <Link href="/" onClick={() => setMenuOpen(false)} className={`block text-sm ${pathname === "/" ? "text-white font-medium" : "text-white/80 hover:text-white"}`}>
             Leaderboard
           </Link>
-          <Link href="/rules" onClick={() => setMenuOpen(false)} className="block text-white/80 hover:text-white text-sm">
+          <Link href="/rules" onClick={() => setMenuOpen(false)} className={`block text-sm ${pathname === "/rules" ? "text-white font-medium" : "text-white/80 hover:text-white"}`}>
             Rules
           </Link>
-          <Link href="/players" onClick={() => setMenuOpen(false)} className="block text-white/80 hover:text-white text-sm">
+          <Link href="/players" onClick={() => setMenuOpen(false)} className={`block text-sm ${pathname.startsWith("/players") ? "text-white font-medium" : "text-white/80 hover:text-white"}`}>
             Players
           </Link>
+          <div className="pt-1">
+            <DesignSwitch />
+          </div>
           {!loading && (
             <>
               {user ? (

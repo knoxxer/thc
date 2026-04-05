@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { SeasonStanding } from "@/lib/types";
+import { useDesign } from "@/components/ui/DesignToggle";
 
 function formatNetVsPar(n: number) {
   if (n === 0) return "E";
   return n > 0 ? `+${n}` : `${n}`;
 }
 
-function RankBadge({ rank }: { rank: number }) {
+function RankBadge({ rank, v2 }: { rank: number; v2: boolean }) {
   if (rank === 1)
     return <span className="text-gold font-bold text-lg">1st</span>;
   if (rank === 2)
     return <span className="text-gray-300 font-semibold">2nd</span>;
   if (rank === 3)
-    return <span className="text-amber-700 font-semibold">3rd</span>;
+    return <span className={`${v2 ? "text-amber-500" : "text-amber-700"} font-semibold`}>3rd</span>;
   return <span className="text-muted">{rank}th</span>;
 }
 
@@ -23,11 +24,14 @@ export default function LeaderboardTable({
 }: {
   standings: SeasonStanding[];
 }) {
+  const { design } = useDesign();
+  const v2 = design === "v2";
+
   if (standings.length === 0) {
     return (
       <div className="text-center py-16 px-4">
         <p className="text-muted text-lg mb-1">No rounds posted yet.</p>
-        <p className="text-muted/60 text-sm">
+        <p className="text-muted text-sm">
           Be the first to{" "}
           <Link href="/rounds/new" className="text-gold hover:text-gold-light">
             post a score
@@ -64,7 +68,7 @@ export default function LeaderboardTable({
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 text-center">
-                  <RankBadge rank={rank} />
+                  <RankBadge rank={rank} v2={v2} />
                 </div>
                 <div>
                   <span className={`font-semibold ${isLeader ? "text-gold" : ""}`}>
@@ -90,6 +94,7 @@ export default function LeaderboardTable({
       {/* Desktop: table layout */}
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full">
+          <caption className="sr-only">Season leaderboard standings</caption>
           <thead>
             <tr className="border-b border-surface-light text-muted text-xs uppercase tracking-wider">
               <th className="text-left py-3 px-4 w-16">Rank</th>
@@ -112,7 +117,7 @@ export default function LeaderboardTable({
                   }`}
                 >
                   <td className="py-4 px-4">
-                    <RankBadge rank={rank} />
+                    <RankBadge rank={rank} v2={v2} />
                   </td>
                   <td className="py-4 px-4">
                     <Link
@@ -137,7 +142,7 @@ export default function LeaderboardTable({
                   </td>
                   <td className="py-4 px-4 text-center text-muted tabular-nums hidden md:table-cell">
                     {formatNetVsPar(s.best_net_vs_par)}{" "}
-                    <span className="text-muted/60">({s.best_round_points}pts)</span>
+                    <span className="text-muted">({s.best_round_points}pts)</span>
                   </td>
                   <td className="py-4 px-4 text-right">
                     <span className={`text-xl font-bold tabular-nums ${isLeader ? "text-gold" : "text-white"}`}>
