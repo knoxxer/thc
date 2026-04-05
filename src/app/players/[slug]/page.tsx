@@ -81,15 +81,15 @@ export default async function PlayerPage({
       {/* Season summary */}
       {season && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-surface rounded-lg border border-surface-light p-4">
+          <div className="bg-surface rounded-xl border border-surface-light p-4">
             <p className="text-sm text-muted">Season Points</p>
             <p className="text-2xl font-bold text-gold">{totalPoints}</p>
           </div>
-          <div className="bg-surface rounded-lg border border-surface-light p-4">
+          <div className="bg-surface rounded-xl border border-surface-light p-4">
             <p className="text-sm text-muted">Rounds Played</p>
             <p className="text-2xl font-bold">{rounds.length}</p>
           </div>
-          <div className="bg-surface rounded-lg border border-surface-light p-4">
+          <div className="bg-surface rounded-xl border border-surface-light p-4">
             <p className="text-sm text-muted">Best Round</p>
             <p className="text-2xl font-bold">
               {rounds.length > 0
@@ -97,7 +97,7 @@ export default async function PlayerPage({
                 : "—"}
             </p>
           </div>
-          <div className="bg-surface rounded-lg border border-surface-light p-4">
+          <div className="bg-surface rounded-xl border border-surface-light p-4">
             <p className="text-sm text-muted">Status</p>
             <p className="text-2xl font-bold">
               {isEligible ? (

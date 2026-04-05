@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -32,24 +33,30 @@ export default function Nav() {
   }
 
   return (
-    <nav className="border-b border-surface-light bg-surface/80 backdrop-blur-sm">
-      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
-          <span className="text-2xl">🏆</span>
-          <span className="font-bold text-lg text-gold group-hover:text-gold-light transition-colors">
+    <nav className="border-b border-surface-light bg-accent/90 backdrop-blur-sm">
+      <div className="max-w-5xl mx-auto px-4 py-2 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3 group">
+          <Image
+            src="/logo.png"
+            alt="The Homie Cup"
+            width={44}
+            height={44}
+            className="rounded-full"
+          />
+          <span className="font-[var(--font-heading)] font-bold text-lg text-white uppercase tracking-wider group-hover:text-gold transition-colors hidden sm:inline">
             The Homie Cup
           </span>
         </Link>
         <div className="flex items-center gap-6 text-sm">
           <Link
             href="/"
-            className="text-muted hover:text-foreground transition-colors"
+            className="text-white/70 hover:text-white transition-colors"
           >
             Leaderboard
           </Link>
           <Link
             href="/players"
-            className="text-muted hover:text-foreground transition-colors"
+            className="text-white/70 hover:text-white transition-colors"
           >
             Players
           </Link>
@@ -59,13 +66,13 @@ export default function Nav() {
                 <>
                   <Link
                     href="/rounds/new"
-                    className="bg-accent hover:bg-accent-light text-white px-3 py-1.5 rounded-md transition-colors text-sm font-medium"
+                    className="bg-gold hover:bg-gold-light text-accent px-3 py-1.5 rounded-md transition-colors text-sm font-semibold"
                   >
                     Post Score
                   </Link>
                   <button
                     onClick={handleSignOut}
-                    className="text-muted hover:text-foreground transition-colors"
+                    className="text-white/70 hover:text-white transition-colors"
                   >
                     Sign Out
                   </button>
@@ -73,7 +80,7 @@ export default function Nav() {
               ) : (
                 <Link
                   href="/login"
-                  className="bg-accent hover:bg-accent-light text-white px-3 py-1.5 rounded-md transition-colors text-sm font-medium"
+                  className="bg-gold hover:bg-gold-light text-accent px-3 py-1.5 rounded-md transition-colors text-sm font-semibold"
                 >
                   Sign In
                 </Link>

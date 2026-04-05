@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -15,7 +16,14 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-sm mx-auto px-4 py-20 text-center">
-      <h1 className="text-3xl font-bold text-gold mb-2">Sign In</h1>
+      <Image
+        src="/logo.png"
+        alt="The Homie Cup"
+        width={80}
+        height={80}
+        className="mx-auto mb-6 rounded-full"
+      />
+      <h1 className="text-3xl font-bold text-white mb-2">Sign In</h1>
       <p className="text-muted mb-8">
         Sign in to post scores and manage your rounds.
       </p>

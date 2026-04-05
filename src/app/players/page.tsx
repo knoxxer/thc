@@ -17,15 +17,17 @@ export default async function PlayersPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-gold">The Homies</h1>
+      <h1 className="text-3xl font-bold mb-8 text-white">The Homies</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {players.map((player) => (
           <Link
             key={player.id}
             href={`/players/${player.slug}`}
-            className="bg-surface rounded-lg border border-surface-light p-5 hover:border-accent transition-colors group"
+            className="bg-surface rounded-xl border border-surface-light p-5 hover:border-accent-light transition-colors group"
           >
-            <div className="text-3xl mb-3">🏌️</div>
+            <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center text-white font-bold mb-3">
+              {player.display_name.charAt(0)}
+            </div>
             <h2 className="font-semibold group-hover:text-gold transition-colors">
               {player.display_name}
             </h2>
