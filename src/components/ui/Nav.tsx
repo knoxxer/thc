@@ -55,6 +55,12 @@ export default function Nav() {
             Leaderboard
           </Link>
           <Link
+            href="/rules"
+            className="text-white/70 hover:text-white transition-colors"
+          >
+            Rules
+          </Link>
+          <Link
             href="/players"
             className="text-white/70 hover:text-white transition-colors"
           >
