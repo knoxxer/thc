@@ -1,6 +1,6 @@
 const FIREBASE_SESSION_URL =
   "https://firebaseinstallations.googleapis.com/v1/projects/ghin-mobile-app/installations";
-const GOOGLE_API_KEY = "AIzaSyBxgTOAWxiud0HuaE5tN-5NTlzFnrtyz-I";
+const GOOGLE_API_KEY = process.env.GHIN_FIREBASE_KEY || "";
 const GHIN_API = "https://api2.ghin.com/api/v1";
 
 const SESSION_DEFAULTS = {
