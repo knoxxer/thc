@@ -1,0 +1,253 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { calculatePoints } from "@/lib/points";
+import { Player, Season } from "@/lib/types";
+import Link from "next/link";
+
+export default function NewRoundPage() {
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [season, setSeason] = useState<Season | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const [playerId, setPlayerId] = useState("");
+  const [playedAt, setPlayedAt] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [courseName, setCourseName] = useState("");
+  const [par, setPar] = useState(72);
+  const [grossScore, setGrossScore] = useState<number | "">("");
+  const [courseHandicap, setCourseHandicap] = useState<number | "">("");
+
+  const netScore =
+    grossScore !== "" && courseHandicap !== ""
+      ? grossScore - courseHandicap
+      : null;
+  const netVsPar = netScore !== null ? netScore - par : null;
+  const points = netVsPar !== null ? calculatePoints(netVsPar) : null;
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const [{ data: p }, { data: s }] = await Promise.all([
+        supabase
+          .from("players")
+          .select("*")
+          .eq("is_active", true)
+          .order("name"),
+        supabase
+          .from("seasons")
+          .select("*")
+          .eq("is_active", true)
+          .single<Season>(),
+      ]);
+      setPlayers((p as Player[]) || []);
+      setSeason(s as Season | null);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!season || !playerId || grossScore === "" || courseHandicap === "")
+      return;
+
+    setSubmitting(true);
+    const supabase = createClient();
+
+    const { error } = await supabase.from("rounds").insert({
+      player_id: playerId,
+      season_id: season.id,
+      played_at: playedAt,
+      course_name: courseName,
+      par,
+      gross_score: grossScore,
+      course_handicap: courseHandicap,
+      points,
+      source: "manual",
+    });
+
+    setSubmitting(false);
+
+    if (error) {
+      alert(`Error: ${error.message}`);
+    } else {
+      setSuccess(true);
+      setGrossScore("");
+      setCourseHandicap("");
+      setCourseName("");
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-8 text-center text-muted">
+        Loading...
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-16 text-center">
+        <p className="text-4xl mb-4">🎉</p>
+        <h2 className="text-2xl font-bold mb-2">Score Posted!</h2>
+        <p className="text-muted mb-2">
+          {points} point{points !== 1 ? "s" : ""} earned
+        </p>
+        <div className="flex gap-4 justify-center mt-6">
+          <button
+            onClick={() => setSuccess(false)}
+            className="bg-accent hover:bg-accent-light text-white px-4 py-2 rounded-md transition-colors"
+          >
+            Post Another
+          </button>
+          <Link
+            href="/"
+            className="bg-surface border border-surface-light hover:bg-surface-light text-foreground px-4 py-2 rounded-md transition-colors"
+          >
+            View Leaderboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-lg mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8 text-gold">Post a Score</h1>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Player */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Player</label>
+          <select
+            value={playerId}
+            onChange={(e) => setPlayerId(e.target.value)}
+            required
+            className="w-full bg-surface border border-surface-light rounded-md px-3 py-2 text-foreground focus:outline-none focus:border-accent"
+          >
+            <option value="">Select player...</option>
+            {players.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Date */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Date Played</label>
+          <input
+            type="date"
+            value={playedAt}
+            onChange={(e) => setPlayedAt(e.target.value)}
+            required
+            className="w-full bg-surface border border-surface-light rounded-md px-3 py-2 text-foreground focus:outline-none focus:border-accent"
+          />
+        </div>
+
+        {/* Course */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Course Name</label>
+          <input
+            type="text"
+            value={courseName}
+            onChange={(e) => setCourseName(e.target.value)}
+            required
+            placeholder="e.g. Torrey Pines South"
+            className="w-full bg-surface border border-surface-light rounded-md px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-accent"
+          />
+        </div>
+
+        {/* Par */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Course Par</label>
+          <input
+            type="number"
+            value={par}
+            onChange={(e) => setPar(Number(e.target.value))}
+            required
+            min={60}
+            max={80}
+            className="w-full bg-surface border border-surface-light rounded-md px-3 py-2 text-foreground focus:outline-none focus:border-accent"
+          />
+        </div>
+
+        {/* Gross Score */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Gross Score</label>
+          <input
+            type="number"
+            value={grossScore}
+            onChange={(e) =>
+              setGrossScore(e.target.value ? Number(e.target.value) : "")
+            }
+            required
+            min={50}
+            max={200}
+            placeholder="e.g. 92"
+            className="w-full bg-surface border border-surface-light rounded-md px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-accent"
+          />
+        </div>
+
+        {/* Course Handicap */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Course Handicap
+          </label>
+          <p className="text-xs text-muted mb-1">
+            Your course handicap for the tees you played (check your GHIN app)
+          </p>
+          <input
+            type="number"
+            value={courseHandicap}
+            onChange={(e) =>
+              setCourseHandicap(e.target.value ? Number(e.target.value) : "")
+            }
+            required
+            min={-5}
+            max={54}
+            placeholder="e.g. 18"
+            className="w-full bg-surface border border-surface-light rounded-md px-3 py-2 text-foreground placeholder:text-muted focus:outline-none focus:border-accent"
+          />
+        </div>
+
+        {/* Live calculation preview */}
+        {netScore !== null && (
+          <div className="bg-surface-light rounded-lg p-4 border border-surface-light">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted">Net Score</p>
+                <p className="text-lg font-bold">
+                  {netScore}{" "}
+                  <span className="text-sm text-muted font-normal">
+                    ({netVsPar !== null && netVsPar > 0 ? "+" : ""}
+                    {netVsPar === 0 ? "E" : netVsPar})
+                  </span>
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted">Points</p>
+                <p className="text-2xl font-bold text-gold">{points}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={submitting || !playerId || grossScore === "" || courseHandicap === ""}
+          className="w-full bg-accent hover:bg-accent-light disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-md transition-colors font-medium"
+        >
+          {submitting ? "Posting..." : "Post Score"}
+        </button>
+      </form>
+    </div>
+  );
+}

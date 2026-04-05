@@ -1,65 +1,99 @@
-import Image from "next/image";
+import { createClient } from "@/lib/supabase/server";
+import LeaderboardTable from "@/components/leaderboard/LeaderboardTable";
+import { Season, SeasonStanding, Player } from "@/lib/types";
 
-export default function Home() {
+export const revalidate = 60;
+
+export default async function Home() {
+  const supabase = await createClient();
+
+  const { data: season } = await supabase
+    .from("seasons")
+    .select("*")
+    .eq("is_active", true)
+    .single<Season>();
+
+  let standings: SeasonStanding[] = [];
+  if (season) {
+    const { data } = await supabase
+      .from("season_standings")
+      .select("*")
+      .eq("season_id", season.id);
+    standings = (data as SeasonStanding[]) || [];
+  }
+
+  const { data: allPlayers } = await supabase
+    .from("players")
+    .select("*")
+    .eq("is_active", true);
+
+  const playersWithoutRounds = ((allPlayers as Player[]) || []).filter(
+    (p) => !standings.some((s) => s.player_id === p.id)
+  );
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      {/* Hero */}
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-bold mb-2">
+          <span className="text-gold">The Homie Cup</span>
+        </h1>
+        {season && (
+          <p className="text-muted">
+            {season.name} &middot; Best {season.top_n_rounds} of your rounds
+            &middot; Min {season.min_rounds} to qualify
+          </p>
+        )}
+      </div>
+
+      {/* Leaderboard */}
+      <div className="bg-surface rounded-xl border border-surface-light overflow-hidden">
+        <div className="px-4 py-3 border-b border-surface-light flex items-center justify-between">
+          <h2 className="font-semibold text-lg">Season Standings</h2>
+          <span className="text-xs text-muted">
+            Points = 10 - (net vs par), min 1, max 15
+          </span>
+        </div>
+        <LeaderboardTable standings={standings} />
+      </div>
+
+      {/* Players who haven't posted yet */}
+      {playersWithoutRounds.length > 0 && (
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted">
+            Still waiting on:{" "}
+            {playersWithoutRounds.map((p) => p.name).join(", ")}
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      )}
+
+      {/* How it works */}
+      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-surface rounded-lg border border-surface-light p-5">
+          <p className="text-2xl mb-2">🏌️</p>
+          <h3 className="font-semibold mb-1">Play Anywhere</h3>
+          <p className="text-sm text-muted">
+            Play any course, any time, with anyone. Every round counts toward
+            the cup.
+          </p>
         </div>
-      </main>
+        <div className="bg-surface rounded-lg border border-surface-light p-5">
+          <p className="text-2xl mb-2">📊</p>
+          <h3 className="font-semibold mb-1">Handicap Adjusted</h3>
+          <p className="text-sm text-muted">
+            Points are based on your net score. A 20-handicap has the same shot
+            at winning as a scratch golfer.
+          </p>
+        </div>
+        <div className="bg-surface rounded-lg border border-surface-light p-5">
+          <p className="text-2xl mb-2">🏆</p>
+          <h3 className="font-semibold mb-1">Best 10 Count</h3>
+          <p className="text-sm text-muted">
+            Your top 10 rounds score. Play at least 5 to qualify. Quality and
+            consistency win the cup.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
