@@ -9,6 +9,22 @@ function getServiceClient() {
   );
 }
 
+// Vercel cron calls GET
+export async function GET(request: Request) {
+  // Verify cron secret if set
+  const authHeader = request.headers.get("authorization");
+  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const results = await syncAllPlayers();
+    return NextResponse.json({ results });
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   // Simple API key check for cron/admin calls
   const { searchParams } = new URL(request.url);
