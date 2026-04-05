@@ -89,6 +89,8 @@ export interface GhinScore {
   slope_rating: number;
   number_of_holes: number;
   score_type: string;
+  course_handicap: string | number;
+  net_score: number;
 }
 
 export async function lookupGolfer(ghinNumber: number): Promise<GhinGolfer | null> {

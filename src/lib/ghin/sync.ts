@@ -77,12 +77,11 @@ export async function syncPlayer(
 
       if (existing) continue;
 
-      // Calculate course handicap from handicap index
-      const hi = result.handicapIndex || 0;
-      const courseHandicap = Math.round(
-        hi * (score.slope_rating / 113) + (score.course_rating - 72)
-      );
-      const par = 72; // default, GHIN doesn't provide par directly
+      // Use GHIN's course handicap from time of round (not current HI)
+      const courseHandicap = typeof score.course_handicap === 'string'
+        ? parseInt(score.course_handicap, 10)
+        : score.course_handicap;
+      const par = 72;
       const netVsPar = score.adjusted_gross_score - courseHandicap - par;
       const points = calculatePoints(netVsPar);
 
