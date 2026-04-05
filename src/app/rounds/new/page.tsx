@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { calculatePoints } from "@/lib/points";
 import { Player, Season } from "@/lib/types";
 import Link from "next/link";
 
 export default function NewRoundPage() {
+  const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [season, setSeason] = useState<Season | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [authed, setAuthed] = useState(false);
 
   const [playerId, setPlayerId] = useState("");
   const [playedAt, setPlayedAt] = useState(
@@ -32,6 +35,15 @@ export default function NewRoundPage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient();
+
+      // Check auth
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      setAuthed(true);
+
       const [{ data: p }, { data: s }] = await Promise.all([
         supabase
           .from("players")
@@ -83,7 +95,7 @@ export default function NewRoundPage() {
     }
   }
 
-  if (loading) {
+  if (loading || !authed) {
     return (
       <div className="max-w-lg mx-auto px-4 py-8 text-center text-muted">
         Loading...
