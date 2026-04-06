@@ -131,10 +131,13 @@ final class OverpassAPIClient: OverpassAPIProviding, @unchecked Sendable {
     }
 
     private func buildOSMIdQuery(osmId: String) -> String {
+        // Store the relation in a named set (.r) before converting to an area,
+        // then use the area set (.course) to filter ways. This is the correct
+        // Overpass QL two-step pattern for area-based queries from a relation ID.
         """
         [out:json][timeout:30];
-        relation(\(osmId));
-        map_to_area->.course;
+        rel(\(osmId))->.r;
+        map_to_area.r->.course;
         (
           way["golf"="green"](area.course);
           way["golf"="bunker"](area.course);
@@ -152,9 +155,15 @@ final class OverpassAPIClient: OverpassAPIProviding, @unchecked Sendable {
     private func executeQuery(_ query: String) async throws -> OSMGolfData {
         var request = URLRequest(url: URL(string: Self.endpoint)!)
         request.httpMethod = "POST"
-        request.httpBody = "data=\(query)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-            .flatMap { $0.data(using: .utf8) }
-            ?? query.data(using: .utf8)
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+
+        // Percent-encode only the QL query value so that the `=`, `[`, `]`,
+        // and `;` characters in the Overpass QL are transmitted correctly.
+        // `.urlQueryAllowed` retains `=` and `&` (unsafe here), so we use
+        // `.urlHostAllowed` on the value portion which encodes those characters.
+        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+            ?? query
+        request.httpBody = "data=\(encodedQuery)".data(using: .utf8)
         request.timeoutInterval = 35
 
         let (data, response) = try await session.data(for: request)

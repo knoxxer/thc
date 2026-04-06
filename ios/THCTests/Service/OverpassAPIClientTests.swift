@@ -102,22 +102,33 @@ final class OverpassAPIClientTests: XCTestCase {
         // When
         _ = try await client.fetchGolfFeatures(lat: 32.8990, lon: -117.2519, radiusMeters: 500)
 
-        // Then: inspect the captured request body for required tags
+        // Then: inspect the captured request body for required tags.
+        // The body is application/x-www-form-urlencoded, so the QL value is percent-encoded.
+        // Decode it before checking for human-readable tag strings.
         let capturedRequest = mockURLSession.capturedRequests.first
         XCTAssertNotNil(capturedRequest, "A request should have been made")
 
-        let requestBody = capturedRequest?.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? ""
-        XCTAssertTrue(requestBody.contains("golf\"=\"green\"") || requestBody.contains("golf=green"),
-                      "Query must include golf=green")
-        XCTAssertTrue(requestBody.contains("golf\"=\"bunker\"") || requestBody.contains("golf=bunker"),
+        let rawBody = capturedRequest?.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+        // Strip the "data=" prefix and percent-decode the QL value.
+        let decodedBody: String
+        if rawBody.hasPrefix("data=") {
+            let encoded = String(rawBody.dropFirst("data=".count))
+            decodedBody = encoded.removingPercentEncoding ?? rawBody
+        } else {
+            decodedBody = rawBody
+        }
+
+        XCTAssertTrue(decodedBody.contains("golf\"=\"green\"") || decodedBody.contains("golf=green"),
+                      "Query must include golf=green; body=\(decodedBody)")
+        XCTAssertTrue(decodedBody.contains("golf\"=\"bunker\"") || decodedBody.contains("golf=bunker"),
                       "Query must include golf=bunker")
-        XCTAssertTrue(requestBody.contains("golf\"=\"fairway\"") || requestBody.contains("golf=fairway"),
+        XCTAssertTrue(decodedBody.contains("golf\"=\"fairway\"") || decodedBody.contains("golf=fairway"),
                       "Query must include golf=fairway")
-        XCTAssertTrue(requestBody.contains("golf\"=\"tee\"") || requestBody.contains("golf=tee"),
+        XCTAssertTrue(decodedBody.contains("golf\"=\"tee\"") || decodedBody.contains("golf=tee"),
                       "Query must include golf=tee")
-        XCTAssertTrue(requestBody.contains("golf\"=\"hole\"") || requestBody.contains("golf=hole"),
+        XCTAssertTrue(decodedBody.contains("golf\"=\"hole\"") || decodedBody.contains("golf=hole"),
                       "Query must include golf=hole")
-        XCTAssertTrue(requestBody.contains("natural\"=\"water\"") || requestBody.contains("natural=water"),
+        XCTAssertTrue(decodedBody.contains("natural\"=\"water\"") || decodedBody.contains("natural=water"),
                       "Query must include natural=water")
     }
 

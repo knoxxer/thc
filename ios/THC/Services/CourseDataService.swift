@@ -116,13 +116,21 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
             let value: String
         }
 
-        let rows: [AppConfigRow] = try await supabase.client
-            .from("app_config")
-            .select("value")
-            .eq("key", value: "golfcourseapi_key")
-            .limit(1)
-            .execute()
-            .value
+        // Fetch the API key from Supabase. Any network/decoding failure is treated as
+        // "key unavailable" — the caller should show an appropriate message rather than
+        // exposing a raw Supabase or network error to the user.
+        let rows: [AppConfigRow]
+        do {
+            rows = try await supabase.client
+                .from("app_config")
+                .select("value")
+                .eq("key", value: "golfcourseapi_key")
+                .limit(1)
+                .execute()
+                .value
+        } catch {
+            throw GolfCourseAPIError.apiKeyUnavailable
+        }
 
         guard let key = rows.first?.value, !key.isEmpty, key != "YOUR_KEY_HERE" else {
             throw GolfCourseAPIError.apiKeyUnavailable
