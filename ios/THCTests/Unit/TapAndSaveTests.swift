@@ -2,7 +2,8 @@
 // THCTests/Unit
 //
 // All 7 specs from §2.5.
-// Tests compile but fail (red) until TapAndSave service logic is implemented (M7.6).
+// Uses MockTapAndSavePersistence to intercept Supabase calls without a real backend.
+// SwiftData is exercised via an in-memory ModelContainer for offline/cache tests.
 
 import XCTest
 import SwiftData
@@ -12,16 +13,16 @@ import Shared
 
 final class TapAndSaveTests: XCTestCase {
 
-    var mockSupabase: MockSupabaseClient!
+    var mockPersistence: MockTapAndSavePersistence!
     var container: ModelContainer!
     var service: TapAndSaveService!
 
     override func setUp() async throws {
         try await super.setUp()
-        mockSupabase = MockSupabaseClient()
+        mockPersistence = MockTapAndSavePersistence()
         container = try TestModelContainer.create()
         service = TapAndSaveService(
-            supabase: mockSupabase,
+            persistence: mockPersistence,
             modelContainer: container
         )
     }
@@ -29,7 +30,7 @@ final class TapAndSaveTests: XCTestCase {
     override func tearDown() async throws {
         service = nil
         container = nil
-        mockSupabase = nil
+        mockPersistence = nil
         try await super.tearDown()
     }
 
@@ -51,27 +52,25 @@ final class TapAndSaveTests: XCTestCase {
             savedBy: savedBy
         )
 
-        // Then: Supabase upsert into course_holes with correct fields
-        XCTAssertEqual(mockSupabase.upsertCalls.count, 1, "One upsert to course_holes expected")
-        let upsert = mockSupabase.upsertCalls.first!
+        // Then: one upsert to course_holes with correct fields
+        XCTAssertEqual(mockPersistence.upsertCalls.count, 1, "One upsert to course_holes expected")
+        let upsert = mockPersistence.upsertCalls.first!
         XCTAssertEqual(upsert.table, "course_holes")
-        if let payload = upsert.payload as? [String: Any] {
-            XCTAssertEqual(payload["hole_number"] as? Int, holeNumber)
-            XCTAssertEqual(payload["source"] as? String, "tap_and_save")
-            XCTAssertEqual(payload["green_lat"] as? Double ?? 0, coordinate.latitude, accuracy: 0.0001)
-            XCTAssertEqual(payload["green_lon"] as? Double ?? 0, coordinate.longitude, accuracy: 0.0001)
-        }
+        XCTAssertEqual(upsert.payload.holeNumber, holeNumber)
+        XCTAssertEqual(upsert.payload.source, "tap_and_save")
+        XCTAssertEqual(upsert.payload.greenLat, coordinate.latitude, accuracy: 0.0001)
+        XCTAssertEqual(upsert.payload.greenLon, coordinate.longitude, accuracy: 0.0001)
     }
 
     // MARK: - §2.5.2 Fetch green pin saved by another user
 
     func test_fetchGreenPin_savedByAnotherUser() async throws {
-        // Given: Supabase has a pin for Hole 3 saved by user B
+        // Given: Supabase has a pin for Hole 3 saved by another user
         let courseID = UUID()
         let expectedHole = CourseHole.fixture(holeNumber: 3, courseId: courseID, source: "tap_and_save")
-        mockSupabase.stubbedResponses["course_holes"] = .success([expectedHole])
+        mockPersistence.stubbedHoles = [expectedHole]
 
-        // When: user A fetches holes for the same course
+        // When: fetch holes for the same course
         let holes = try await service.fetchCourseHoles(courseID: courseID)
 
         // Then: pin is returned and distances can be computed
@@ -98,7 +97,8 @@ final class TapAndSaveTests: XCTestCase {
             greenLon: oldCoordinate.longitude,
             savedBy: savedBy
         )
-        mockSupabase.upsertCalls.removeAll()
+        let firstCount = mockPersistence.upsertCalls.count
+        XCTAssertEqual(firstCount, 1)
 
         // When: user saves a different coordinate for the same hole
         try await service.saveGreenPin(
@@ -109,15 +109,21 @@ final class TapAndSaveTests: XCTestCase {
             savedBy: savedBy
         )
 
-        // Then: upsert (not insert) is called — ensures exactly one row for course+hole
-        XCTAssertEqual(mockSupabase.upsertCalls.count, 1, "Overwrite should use upsert, not insert")
-        XCTAssertEqual(mockSupabase.insertCalls.count, 0, "Should not insert a duplicate row")
+        // Then: second upsert was called (onConflict = "course_id,hole_number" ensures one row)
+        XCTAssertEqual(mockPersistence.upsertCalls.count, 2,
+                       "Overwrite should use upsert — two upsert calls total, one per save")
+        // Only one hole should exist in the stub (upsert semantics)
+        XCTAssertEqual(mockPersistence.stubbedHoles.filter { $0.holeNumber == 3 }.count, 1,
+                       "Upsert should result in exactly one row for hole 3")
+        XCTAssertEqual(mockPersistence.stubbedHoles.first?.greenLat ?? 0,
+                       newCoordinate.latitude, accuracy: 0.0001,
+                       "Latest coordinate should replace the old one")
     }
 
     // MARK: - §2.5.4 Green pin persists across app restarts
 
     func test_greenPinPersistsAcrossRestart() async throws {
-        // Given: green pin is saved in both Supabase and SwiftData
+        // Given: green pin is saved to both Supabase and SwiftData
         let courseID = UUID()
         let coordinate = CLLocationCoordinate2D(latitude: 32.8951, longitude: -117.2518)
         let savedBy = UUID()
@@ -130,29 +136,29 @@ final class TapAndSaveTests: XCTestCase {
             savedBy: savedBy
         )
 
-        // When: simulate app restart by creating new service with same SwiftData container
-        // (network is offline — only local cache available)
+        // When: simulate app restart by creating a new service with the same ModelContainer
+        // (network is offline — only local SwiftData cache available)
         let offlineService = TapAndSaveService(
-            supabase: mockSupabase,
-            modelContainer: container,
-            networkAvailable: false
+            persistence: mockPersistence,
+            modelContainer: container
         )
 
         // Then: pin is loadable from SwiftData
         let localHoles = try offlineService.getCachedHoles(courseID: courseID)
         XCTAssertFalse(localHoles.isEmpty, "Green pin should persist in SwiftData across restart")
         XCTAssertEqual(localHoles.first?.holeNumber, 5)
+        XCTAssertEqual(localHoles.first?.greenLat ?? 0, coordinate.latitude, accuracy: 0.0001)
     }
 
     // MARK: - §2.5.5 Save fails offline: queues in SwiftData
 
     func test_saveFailsOffline_queuesInSwiftData() async throws {
-        // Given: network is unavailable
-        mockSupabase.upsertError = URLError(.notConnectedToInternet)
+        // Given: network is unavailable — next upsert will throw
+        mockPersistence.upsertError = URLError(.notConnectedToInternet)
         let courseID = UUID()
         let savedBy = UUID()
 
-        // When: user tries to save a green pin
+        // When: user tries to save a green pin (upsert throws → caught internally)
         try await service.saveGreenPin(
             courseId: courseID,
             holeNumber: 7,
@@ -161,9 +167,13 @@ final class TapAndSaveTests: XCTestCase {
             savedBy: savedBy
         )
 
-        // Then: pin queued locally with syncStatus = .pending; no crash
+        // Then: pin queued locally with syncStatus = pending; no crash; no throw propagated
         let pendingPins = try service.getPendingPins()
-        XCTAssertFalse(pendingPins.isEmpty, "Offline pin should be queued in SwiftData with pending status")
+        XCTAssertFalse(pendingPins.isEmpty,
+                       "Offline pin should be queued in SwiftData with pending status")
+        XCTAssertEqual(pendingPins.first?.holeNumber, 7)
+        XCTAssertTrue(pendingPins.first?.isPendingSync ?? false,
+                      "Queued pin should have source = 'tap_and_save_pending'")
     }
 
     // MARK: - §2.5.6 Tap-for-distance (no save intent)
@@ -176,18 +186,21 @@ final class TapAndSaveTests: XCTestCase {
         // When
         let distance = service.instantDistance(from: userLocation, to: tappedLocation)
 
-        // Then: correct Haversine distance; no Supabase call
+        // Then: correct Haversine distance; no persistence calls
         XCTAssertGreaterThan(distance, 0, "Distance should be positive")
-        XCTAssertEqual(mockSupabase.insertCalls.count, 0, "Tap-for-distance must not call Supabase insert")
-        XCTAssertEqual(mockSupabase.upsertCalls.count, 0, "Tap-for-distance must not call Supabase upsert")
+        XCTAssertEqual(mockPersistence.upsertCalls.count, 0,
+                       "Tap-for-distance must not call persistence upsert")
+        XCTAssertEqual(mockPersistence.updateCalls.count, 0,
+                       "Tap-for-distance must not call persistence update")
     }
 
     // MARK: - §2.5.7 All 18 greens saved: updates has_green_data
 
     func test_allEighteenGreensSaved_updatesHasGreenData() async throws {
-        // Given: user saves pins for all 18 holes
+        // Given: course has 18 holes; configure stub to expose holeCount = 18
         let courseID = UUID()
         let savedBy = UUID()
+        mockPersistence.stubbedHoleCount = 18
 
         for holeNumber in 1...18 {
             try await service.saveGreenPin(
@@ -199,14 +212,13 @@ final class TapAndSaveTests: XCTestCase {
             )
         }
 
-        // Then: an update to course_data.has_green_data = true is made
-        let hasGreenDataUpdate = mockSupabase.updateCalls.first {
+        // Then: markCourseHasGreenData was called at some point
+        let hasGreenDataUpdate = mockPersistence.updateCalls.first {
             $0.table == "course_data"
         }
-        XCTAssertNotNil(hasGreenDataUpdate, "Saving all 18 greens should update has_green_data on course_data")
-        if let payload = hasGreenDataUpdate?.payload as? [String: Any] {
-            XCTAssertEqual(payload["has_green_data"] as? Bool, true)
-        }
+        XCTAssertNotNil(hasGreenDataUpdate,
+                        "Saving all 18 greens should trigger markCourseHasGreenData")
+        XCTAssertEqual(hasGreenDataUpdate?.payload["has_green_data"] as? Bool, true)
     }
 }
 
