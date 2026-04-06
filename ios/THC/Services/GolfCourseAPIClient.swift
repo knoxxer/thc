@@ -4,6 +4,10 @@ import Foundation
 
 /// Injectable interface for the GolfCourseAPI.com REST API.
 protocol GolfCourseAPIProviding: Sendable {
+    /// Set the API key. Called by `CourseDataService` once it has been fetched from
+    /// the `app_config` Supabase table. Must be called before search/fetch methods.
+    func configure(apiKey: String)
+
     /// Search for courses by name.
     func searchCourses(query: String) async throws -> [GolfCourseAPIResult]
 

@@ -88,7 +88,8 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
     private let supabase: SupabaseClientProviding
     private let storage: OfflineStorageProviding
     private let overpass: OverpassAPIProviding
-    private let golfCourseAPI: GolfCourseAPIClient
+    // Typed as the protocol so tests can inject MockGolfCourseAPIClient.
+    private let golfCourseAPI: GolfCourseAPIProviding
 
     /// Whether the GolfCourseAPI key has been fetched and configured.
     private var apiKeyConfigured = false
@@ -97,7 +98,7 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
         supabase: SupabaseClientProviding,
         storage: OfflineStorageProviding,
         overpass: OverpassAPIProviding,
-        golfCourseAPI: GolfCourseAPIClient
+        golfCourseAPI: GolfCourseAPIProviding
     ) {
         self.supabase = supabase
         self.storage = storage
@@ -415,14 +416,9 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
             .value
         let radiusMeters = radiusKm * 1000
         return allCourses.filter { course in
-            let dLat = (course.lat - lat) * .pi / 180
-            let dLon = (course.lon - lon) * .pi / 180
-            let a = sin(dLat / 2) * sin(dLat / 2)
-                + cos(lat * .pi / 180) * cos(course.lat * .pi / 180)
-                * sin(dLon / 2) * sin(dLon / 2)
-            let c = 2 * atan2(sqrt(a), sqrt(1 - a))
-            let distMeters = 6_371_000.0 * c
-            return distMeters <= radiusMeters
+            let from = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            let to = CLLocationCoordinate2D(latitude: course.lat, longitude: course.lon)
+            return DistanceCalculator.distanceInMeters(from: from, to: to) <= radiusMeters
         }
     }
 

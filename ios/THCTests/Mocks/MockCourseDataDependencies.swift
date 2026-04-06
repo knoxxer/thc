@@ -79,6 +79,13 @@ final class MockGolfCourseAPIClient: GolfCourseAPIProviding, @unchecked Sendable
 
     var searchCallCount: Int = 0
     var lastSearchQuery: String?
+    private(set) var configuredAPIKey: String?
+
+    // MARK: - GolfCourseAPIProviding
+
+    func configure(apiKey: String) {
+        configuredAPIKey = apiKey
+    }
 
     func searchCourses(query: String) async throws -> [GolfCourseAPIResult] {
         searchCallCount += 1
@@ -251,15 +258,13 @@ final class MockOfflineStorage: OfflineStorageProviding, @unchecked Sendable {
     }
 
     func getNearbyCachedCourses(lat: Double, lon: Double, radiusKm: Double) -> [CachedCourse] {
+        // Mirror the production OfflineStorage behaviour — delegate to DistanceCalculator
+        // so both paths stay in sync if the formula ever changes.
         let radiusMeters = radiusKm * 1000
         return cachedCourses.values.filter { course in
-            let dLat = (course.lat - lat) * .pi / 180
-            let dLon = (course.lon - lon) * .pi / 180
-            let a = sin(dLat / 2) * sin(dLat / 2)
-                + cos(lat * .pi / 180) * cos(course.lat * .pi / 180)
-                * sin(dLon / 2) * sin(dLon / 2)
-            let c = 2 * atan2(sqrt(a), sqrt(1 - a))
-            return 6_371_000.0 * c <= radiusMeters
+            let from = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            let to = CLLocationCoordinate2D(latitude: course.lat, longitude: course.lon)
+            return DistanceCalculator.distanceInMeters(from: from, to: to) <= radiusMeters
         }
     }
 
