@@ -107,13 +107,11 @@ final class StandingsViewModelTests: XCTestCase {
         // Top 10 sorted desc: [13, 12, 11, 11, 10, 10, 10, 9, 9, 8] = 103
         let allRoundPoints = [10, 8, 12, 7, 9, 11, 6, 10, 13, 5, 9, 8, 11, 7, 10]
         let topN = 10
-        let expectedSum = allRoundPoints.sorted(by: >).prefix(topN).reduce(0, +)
 
-        // When: compute manually (same logic the standings view uses)
+        // When: compute top-N sum (same logic the standings view uses)
         let computed = allRoundPoints.sorted(by: >).prefix(topN).reduce(0, +)
 
-        // Then
-        XCTAssertEqual(computed, expectedSum)
+        // Then: must equal the spec-mandated value of 103
         XCTAssertEqual(computed, 103, "Spec says top-10 of the given 15 rounds = 103")
     }
 

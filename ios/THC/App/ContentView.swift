@@ -129,8 +129,12 @@ private struct MainTabView: View {
 
             // Tab 3: Profile
             NavigationStack {
-                PlayerDetailView(player: player, isCurrentUser: true)
-                    .navigationTitle("Profile")
+                PlayerDetailView(
+                    player: player,
+                    isCurrentUser: true,
+                    viewModel: StandingsViewModel(syncService: syncService)
+                )
+                .navigationTitle("Profile")
             }
             .tabItem {
                 Label("Profile", systemImage: "person.circle")
