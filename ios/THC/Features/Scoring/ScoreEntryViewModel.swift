@@ -99,6 +99,7 @@ final class ScoreEntryViewModel: @unchecked Sendable {
 
         isSubmitting = true
         submitResult = nil
+        defer { isSubmitting = false }
 
         // Format date as "YYYY-MM-DD"
         let dateFmt = DateFormatter()
@@ -123,14 +124,12 @@ final class ScoreEntryViewModel: @unchecked Sendable {
 
         do {
             try offlineStorage.saveRound(round)
-            // Attempt immediate sync (no-op if offline)
+            // Attempt immediate sync (no-op / silently fails if offline).
             _ = try? await syncService.syncPendingRounds()
             submitResult = .success(points: pts)
         } catch {
             submitResult = .error(error.localizedDescription)
         }
-
-        isSubmitting = false
     }
 
     /// Reset form to defaults (call after successful submit).

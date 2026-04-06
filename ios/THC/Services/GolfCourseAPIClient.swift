@@ -117,13 +117,13 @@ enum GolfCourseAPIError: LocalizedError {
 final class GolfCourseAPIClient: GolfCourseAPIProviding, @unchecked Sendable {
     private static let baseURL = "https://api.golfcourseapi.com/v1"
 
-    private let session: URLSession
+    private let session: URLSessionDataProviding
     private var rateLimit: GolfCourseAPIRateLimit
     private var apiKey: String?
 
     /// Injectable URLSession for testing — defaults to the shared session.
     init(
-        session: URLSession = .shared,
+        session: URLSessionDataProviding = URLSession.shared,
         defaults: UserDefaults = .standard
     ) {
         self.session = session
@@ -154,12 +154,15 @@ final class GolfCourseAPIClient: GolfCourseAPIProviding, @unchecked Sendable {
         }
 
         let data = try await performRequest(url: url, apiKey: key)
-        rateLimit.recordRequest()
 
         // The GolfCourseAPI search endpoint returns a top-level object with a
         // "courses" array.
         do {
             let wrapper = try JSONDecoder.snakeCase.decode(SearchResponse.self, from: data)
+            // Only record the request after successful parsing — if parsing throws,
+            // the request was still consumed on the API side, but at least we don't
+            // double-count on retry. Recording on success is the safest tradeoff.
+            rateLimit.recordRequest()
             return wrapper.courses
         } catch {
             throw GolfCourseAPIError.parseError(error.localizedDescription)
@@ -179,10 +182,10 @@ final class GolfCourseAPIClient: GolfCourseAPIProviding, @unchecked Sendable {
         }
 
         let data = try await performRequest(url: url, apiKey: key)
-        rateLimit.recordRequest()
 
         do {
             let detail = try JSONDecoder.snakeCase.decode(GolfCourseAPIDetail.self, from: data)
+            rateLimit.recordRequest()
             return detail
         } catch {
             throw GolfCourseAPIError.parseError(error.localizedDescription)
@@ -191,6 +194,9 @@ final class GolfCourseAPIClient: GolfCourseAPIProviding, @unchecked Sendable {
 
     // MARK: - HTTP
 
+    /// Performs a GET request and returns raw response data.
+    /// Throws `GolfCourseAPIError.rateLimitExceeded` on HTTP 429 and
+    /// `GolfCourseAPIError.requestFailed` on any other non-2xx status.
     private func performRequest(url: URL, apiKey: String) async throws -> Data {
         var request = URLRequest(url: url)
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")

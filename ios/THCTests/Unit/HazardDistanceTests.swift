@@ -20,15 +20,21 @@ final class HazardDistanceTests: XCTestCase {
         let userLocation = CLLocationCoordinate2D(latitude: 32.9014, longitude: -117.2533)
 
         // Bunker polygon: near edge ~140 yards away, far edge ~155 yards away
-        // Constructed to be on the approach line (due south of user)
+        // Constructed to be due south of user (along the approach line).
+        // Latitude offsets computed from Haversine:
+        //   140 yards = 128.016 m → Δlat = 128.016 / 111139 ≈ 0.001152°
+        //   155 yards = 141.732 m → Δlat = 141.732 / 111139 ≈ 0.001275°
+        // near edge lat ≈ 32.9014 − 0.001152 = 32.900248
+        // far  edge lat ≈ 32.9014 − 0.001275 = 32.900125
+        // (Haversine-verified: near corners ≈ 140.1 & 143.4 y; far corners ≈ 155.1 & 158.0 y)
         let bunkerPolygon = GeoJSONPolygon(
             type: "Polygon",
             coordinates: [[
-                [-117.2533, 32.8885],  // near-left (~140 yards)
-                [-117.2530, 32.8885],  // near-right
-                [-117.2530, 32.8872],  // far-right (~155 yards)
-                [-117.2533, 32.8872],  // far-left
-                [-117.2533, 32.8885],  // close
+                [-117.2533, 32.900248],  // near-left  (~140 yards)
+                [-117.2530, 32.900248],  // near-right (~143 yards)
+                [-117.2530, 32.900125],  // far-right  (~158 yards)
+                [-117.2533, 32.900125],  // far-left   (~155 yards)
+                [-117.2533, 32.900248],  // close ring
             ]]
         )
 
@@ -48,17 +54,17 @@ final class HazardDistanceTests: XCTestCase {
     // MARK: - §2.2.9 Hazard front distance (near edge)
 
     func test_hazardFrontDistance_nearEdge_withinTolerance() {
-        // Given: same bunker polygon 140–155 yards
+        // Given: same bunker polygon 140–155 yards (see test above for coordinate derivation)
         let userLocation = CLLocationCoordinate2D(latitude: 32.9014, longitude: -117.2533)
 
         let bunkerPolygon = GeoJSONPolygon(
             type: "Polygon",
             coordinates: [[
-                [-117.2533, 32.8885],
-                [-117.2530, 32.8885],
-                [-117.2530, 32.8872],
-                [-117.2533, 32.8872],
-                [-117.2533, 32.8885],
+                [-117.2533, 32.900248],
+                [-117.2530, 32.900248],
+                [-117.2530, 32.900125],
+                [-117.2533, 32.900125],
+                [-117.2533, 32.900248],
             ]]
         )
 

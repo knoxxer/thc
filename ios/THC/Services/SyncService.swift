@@ -20,14 +20,45 @@ protocol SyncServiceProviding: Sendable {
     func fetchActiveSeason() async throws -> Season?
 }
 
+// MARK: - Round Upload Protocol
+
+/// Abstracts the Supabase network calls for round uploads so that
+/// `SyncService` can be tested without a live Supabase connection.
+protocol SupabaseRoundUploading: Sendable {
+    /// Returns `true` if a matching round already exists in Supabase
+    /// (composite key: player_id + played_at + course_name + gross_score).
+    func findDuplicate(for local: LocalRound) async throws -> Bool
+
+    /// Upsert the round row into Supabase. Idempotent via `onConflict: "id"`.
+    func upsertRound(_ local: LocalRound) async throws
+
+    /// Upsert all hole score rows for a round.
+    func upsertHoleScores(_ scores: [LocalHoleScore], roundId: UUID) async throws
+
+    /// Fetch the current standings for a season.
+    func fetchStandings(seasonId: UUID) async throws -> [SeasonStanding]
+
+    /// Fetch all rounds for a player/season.
+    func fetchPlayerRounds(playerId: UUID, seasonId: UUID) async throws -> [Round]
+
+    /// Fetch the active season.
+    func fetchActiveSeason() async throws -> Season?
+}
+
 // MARK: - Implementation
 
 final class SyncService: SyncServiceProviding, @unchecked Sendable {
-    private let supabase: SupabaseClientProviding
+    private let uploader: SupabaseRoundUploading
     private let storage: OfflineStorageProviding
 
-    init(supabase: SupabaseClientProviding, storage: OfflineStorageProviding) {
-        self.supabase = supabase
+    /// Convenience initialiser used in production — wraps a `SupabaseClientProviding`.
+    convenience init(supabase: SupabaseClientProviding, storage: OfflineStorageProviding) {
+        self.init(uploader: LiveSupabaseRoundUploader(supabase: supabase), storage: storage)
+    }
+
+    /// Designated initialiser — inject any `SupabaseRoundUploading` (real or mock).
+    init(uploader: SupabaseRoundUploading, storage: OfflineStorageProviding) {
+        self.uploader = uploader
         self.storage = storage
     }
 
@@ -39,12 +70,28 @@ final class SyncService: SyncServiceProviding, @unchecked Sendable {
 
         var successCount = 0
         for localRound in pending {
+            // Respect cooperative cancellation: if the enclosing Task has been
+            // cancelled (e.g. app backgrounded), stop processing further rounds.
+            // Any round not yet marked synced stays in the pending queue and will
+            // be retried on the next sync — no half-synced state is possible.
+            try Task.checkCancellation()
+
             do {
-                try await uploadRound(localRound)
+                let isDuplicate = try await uploader.findDuplicate(for: localRound)
+                if !isDuplicate {
+                    try await uploader.upsertRound(localRound)
+                    if !localRound.holeScores.isEmpty {
+                        try await uploader.upsertHoleScores(localRound.holeScores, roundId: localRound.id)
+                    }
+                }
+                // Mark synced only after confirmed upload (or confirmed duplicate).
                 try storage.markRoundSynced(localRound.id)
                 successCount += 1
+            } catch is CancellationError {
+                // Re-throw cancellation so the caller's Task propagates it correctly.
+                throw CancellationError()
             } catch {
-                // Log and continue — a failure on one round should not block the others.
+                // Log and continue — a failure on one round should not block others.
                 // The round remains unsynced and will be retried on the next call.
                 print("[SyncService] Failed to sync round \(localRound.id): \(error)")
             }
@@ -52,7 +99,64 @@ final class SyncService: SyncServiceProviding, @unchecked Sendable {
         return successCount
     }
 
-    // MARK: - Fetch
+    // MARK: - Fetch (delegates to uploader)
+
+    func fetchStandings(seasonId: UUID) async throws -> [SeasonStanding] {
+        try await uploader.fetchStandings(seasonId: seasonId)
+    }
+
+    func fetchPlayerRounds(playerId: UUID, seasonId: UUID) async throws -> [Round] {
+        try await uploader.fetchPlayerRounds(playerId: playerId, seasonId: seasonId)
+    }
+
+    func fetchActiveSeason() async throws -> Season? {
+        try await uploader.fetchActiveSeason()
+    }
+}
+
+// MARK: - Live Supabase Implementation
+
+/// Production implementation of `SupabaseRoundUploading` backed by a real Supabase client.
+final class LiveSupabaseRoundUploader: SupabaseRoundUploading, @unchecked Sendable {
+    private let supabase: SupabaseClientProviding
+
+    init(supabase: SupabaseClientProviding) {
+        self.supabase = supabase
+    }
+
+    func findDuplicate(for local: LocalRound) async throws -> Bool {
+        // Composite dedup check: (player_id, played_at, course_name, gross_score).
+        // Using the local UUID as primary key means upsert is idempotent, but this
+        // composite check catches rounds entered via other paths with a different UUID.
+        let playerIdString = local.playerId.uuidString.lowercased()
+        let results: [Round] = try await supabase.client
+            .from("rounds")
+            .select("id")
+            .eq("player_id", value: playerIdString)
+            .eq("played_at", value: local.playedAt)
+            .eq("course_name", value: local.courseName)
+            .eq("gross_score", value: local.grossScore)
+            .limit(1)
+            .execute()
+            .value
+        return !results.isEmpty
+    }
+
+    func upsertRound(_ local: LocalRound) async throws {
+        let payload = RoundInsertPayload(from: local)
+        try await supabase.client
+            .from("rounds")
+            .upsert(payload, onConflict: "id")
+            .execute()
+    }
+
+    func upsertHoleScores(_ scores: [LocalHoleScore], roundId: UUID) async throws {
+        let payloads = scores.map { HoleScoreInsertPayload(from: $0, roundId: roundId) }
+        try await supabase.client
+            .from("hole_scores")
+            .upsert(payloads, onConflict: "id")
+            .execute()
+    }
 
     func fetchStandings(seasonId: UUID) async throws -> [SeasonStanding] {
         let seasonIdString = seasonId.uuidString.lowercased()
@@ -86,58 +190,6 @@ final class SyncService: SyncServiceProviding, @unchecked Sendable {
             .execute()
             .value
         return results.first
-    }
-
-    // MARK: - Private Upload Logic
-
-    private func uploadRound(_ local: LocalRound) async throws {
-        // Dedup check 1: use the local UUID as primary key — if a row with this id
-        // already exists in Supabase the upsert is a no-op.
-        //
-        // Dedup check 2: composite fallback for rounds originally entered manually or
-        // via GHIN that may have been assigned a different UUID.
-        // Before inserting, query for (player_id, played_at, course_name, gross_score).
-
-        let duplicate = try await findDuplicate(local)
-        if duplicate {
-            // The round already exists in Supabase — just mark it synced locally.
-            return
-        }
-
-        let payload = RoundInsertPayload(from: local)
-        try await supabase.client
-            .from("rounds")
-            .upsert(payload, onConflict: "id")
-            .execute()
-
-        // Upload associated hole scores if any.
-        if !local.holeScores.isEmpty {
-            try await uploadHoleScores(local.holeScores, roundId: local.id)
-        }
-    }
-
-    private func findDuplicate(_ local: LocalRound) async throws -> Bool {
-        // Composite check: (player_id, played_at, course_name, gross_score).
-        let playerIdString = local.playerId.uuidString.lowercased()
-        let results: [Round] = try await supabase.client
-            .from("rounds")
-            .select("id")
-            .eq("player_id", value: playerIdString)
-            .eq("played_at", value: local.playedAt)
-            .eq("course_name", value: local.courseName)
-            .eq("gross_score", value: local.grossScore)
-            .limit(1)
-            .execute()
-            .value
-        return !results.isEmpty
-    }
-
-    private func uploadHoleScores(_ scores: [LocalHoleScore], roundId: UUID) async throws {
-        let payloads = scores.map { HoleScoreInsertPayload(from: $0, roundId: roundId) }
-        try await supabase.client
-            .from("hole_scores")
-            .upsert(payloads, onConflict: "id")
-            .execute()
     }
 }
 

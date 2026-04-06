@@ -318,8 +318,18 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
             .execute()
             .value
 
-        let hasGreenData = holes.contains { $0.greenLat != nil }
-        let source: CourseDataSource = hasGreenData ? .tapAndSave : .metadataOnly
+        // Determine the highest-quality data source present in the hole records.
+        // OSM data includes polygon geometry; tap-and-save is center-only.
+        let hasOSMData = holes.contains { $0.source == "osm" && $0.greenLat != nil }
+        let hasTapAndSave = holes.contains { $0.source == "tap_and_save" && $0.greenLat != nil }
+        let source: CourseDataSource
+        if hasOSMData {
+            source = .osm
+        } else if hasTapAndSave {
+            source = .tapAndSave
+        } else {
+            source = .metadataOnly
+        }
         return CourseDetail(course: course, holes: holes, dataSource: source)
     }
 
@@ -463,8 +473,17 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
     private func courseDetailFromCache(_ cached: CachedCourse) -> CourseDetail {
         let course = courseDataFromCache(cached)
         let holes = cached.holes.map { courseHoleFromCachedHole($0, courseId: cached.id) }
-        let hasGreenData = holes.contains { $0.greenLat != nil }
-        let source: CourseDataSource = hasGreenData ? .tapAndSave : .metadataOnly
+        // Prefer OSM when available — OSM holes carry polygon data; tap-and-save is center-only.
+        let hasOSMData = holes.contains { $0.source == "osm" && $0.greenLat != nil }
+        let hasTapAndSave = holes.contains { $0.source == "tap_and_save" && $0.greenLat != nil }
+        let source: CourseDataSource
+        if hasOSMData {
+            source = .osm
+        } else if hasTapAndSave {
+            source = .tapAndSave
+        } else {
+            source = .metadataOnly
+        }
         return CourseDetail(course: course, holes: holes, dataSource: source)
     }
 

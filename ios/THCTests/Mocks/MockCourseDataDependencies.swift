@@ -1,9 +1,9 @@
 // MockCourseDataDependencies.swift
 // THCTests/Mocks
 //
-// Lightweight mock implementations of the protocols injected into CourseDataService.
-// These allow unit tests to control resolution order (cache → Supabase → OSM)
-// without network access.
+// Lightweight mock implementations of the protocols injected into CourseDataService
+// and TapAndSaveService. These allow unit tests to control resolution order
+// (cache → Supabase → OSM) and persistence behavior without network access.
 
 import Foundation
 import CoreLocation
@@ -89,6 +89,98 @@ final class MockGolfCourseAPIClient: GolfCourseAPIProviding, @unchecked Sendable
 
     func getCourse(id: Int) async throws -> GolfCourseAPIDetail? {
         return nil
+    }
+}
+
+// MARK: - MockTapAndSavePersistence
+
+/// Intercepts all TapAndSavePersisting calls for unit tests.
+/// Records calls so tests can assert on them without a real Supabase connection.
+final class MockTapAndSavePersistence: TapAndSavePersisting, @unchecked Sendable {
+
+    // MARK: - Captured calls
+
+    struct UpsertCall {
+        let table: String
+        let payload: TapAndSaveGreenPinPayload
+    }
+
+    struct UpdateCall {
+        let table: String
+        let payload: [String: Any]
+    }
+
+    var upsertCalls: [UpsertCall] = []
+    var updateCalls: [UpdateCall] = []
+
+    // MARK: - Stubs
+
+    /// Set to make the next upsert throw (simulates network failure / offline).
+    var upsertError: Error?
+
+    /// Stubbed holes returned by fetchHoles / fetchAllHoles.
+    var stubbedHoles: [CourseHole] = []
+
+    /// Stubbed hole count returned by fetchHoleCount (nil = course not found).
+    var stubbedHoleCount: Int? = nil
+
+    // MARK: - TapAndSavePersisting
+
+    func upsertGreenPin(_ payload: TapAndSaveGreenPinPayload) async throws {
+        if let error = upsertError {
+            upsertError = nil  // consume so subsequent calls succeed
+            throw error
+        }
+        upsertCalls.append(UpsertCall(table: "course_holes", payload: payload))
+        // Mirror the save into stubbedHoles so fetchAllHoles reflects the current state.
+        // This lets the has_green_data check see the upserted rows.
+        let courseId = UUID(uuidString: payload.courseId) ?? UUID()
+        let hole = CourseHole(
+            id: UUID(),
+            courseId: courseId,
+            holeNumber: payload.holeNumber,
+            par: 0,
+            yardage: nil,
+            handicap: nil,
+            greenLat: payload.greenLat,
+            greenLon: payload.greenLon,
+            greenPolygon: nil,
+            teeLat: nil,
+            teeLon: nil,
+            source: payload.source,
+            savedBy: UUID(uuidString: payload.savedBy),
+            createdAt: .now,
+            updatedAt: .now
+        )
+        // Upsert semantics: replace existing row for same hole_number
+        stubbedHoles.removeAll { $0.holeNumber == payload.holeNumber }
+        stubbedHoles.append(hole)
+    }
+
+    func fetchHoles(courseId: UUID) async throws -> [CourseHole] {
+        stubbedHoles
+    }
+
+    func fetchAllHoles(courseId: UUID) async throws -> [CourseHole] {
+        stubbedHoles
+    }
+
+    func fetchHoleCount(courseId: UUID) async throws -> Int? {
+        stubbedHoleCount
+    }
+
+    func markCourseHasGreenData(courseId: UUID) async throws {
+        updateCalls.append(UpdateCall(table: "course_data", payload: ["has_green_data": true]))
+    }
+
+    // MARK: - Reset
+
+    func reset() {
+        upsertCalls.removeAll()
+        updateCalls.removeAll()
+        upsertError = nil
+        stubbedHoles.removeAll()
+        stubbedHoleCount = nil
     }
 }
 

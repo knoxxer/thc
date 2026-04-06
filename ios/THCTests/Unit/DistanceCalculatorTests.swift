@@ -15,11 +15,12 @@ final class DistanceCalculatorTests: XCTestCase {
 
     func test_haversine_torreyPinesReferencePair_withinTolerance() {
         // Given: Torrey Pines South hole 1 tee → green
-        // Pre-calculated ground truth: ~195 yards (verified via Haversine tool)
+        // Pre-calculated ground truth: ~188 yards (verified via Haversine formula,
+        // R=6371000m, result=172.07m / 0.9144 = 188.2 yards)
         // Coordinates from test plan §2.2.1
         let tee = CLLocationCoordinate2D(latitude: 32.8964, longitude: -117.2528)
         let green = CLLocationCoordinate2D(latitude: 32.8951, longitude: -117.2518)
-        let groundTruthYards: Double = 195.0  // pre-verified
+        let groundTruthYards: Double = 188.0  // pre-verified
         let toleranceYards: Double = 5.0
 
         // When
