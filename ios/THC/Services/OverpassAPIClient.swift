@@ -114,6 +114,8 @@ final class OverpassAPIClient: OverpassAPIProviding, @unchecked Sendable {
     // MARK: - Query Building
 
     private func buildGolfQuery(lat: Double, lon: Double, radius: Int) -> String {
+        // Use "out geom;" to embed geometry directly on each way element.
+        // This avoids the two-step node-lookup pattern and reduces response size.
         """
         [out:json][timeout:30];
         (
@@ -124,9 +126,7 @@ final class OverpassAPIClient: OverpassAPIProviding, @unchecked Sendable {
           way["golf"="hole"](around:\(radius),\(lat),\(lon));
           way["natural"="water"](around:\(radius),\(lat),\(lon));
         );
-        out body;
-        >;
-        out skel qt;
+        out geom;
         """
     }
 
@@ -143,9 +143,7 @@ final class OverpassAPIClient: OverpassAPIProviding, @unchecked Sendable {
           way["golf"="hole"](area.course);
           way["natural"="water"](area.course);
         );
-        out body;
-        >;
-        out skel qt;
+        out geom;
         """
     }
 
@@ -178,13 +176,24 @@ final class OverpassAPIClient: OverpassAPIProviding, @unchecked Sendable {
         }
 
         // First pass: build a node coordinate lookup table.
+        // Used when the response uses the full (non-geometry) format where ways
+        // carry only node IDs and geometry is provided via separate "node" elements.
         var nodeCoords: [Int64: CLLocationCoordinate2D] = [:]
         for element in elements {
             guard let type = element["type"] as? String, type == "node",
-                  let nodeId = element["id"] as? Int64,
                   let lat = element["lat"] as? Double,
                   let lon = element["lon"] as? Double
             else { continue }
+            // JSONSerialization vends JSON integers as Int (not Int64) on all
+            // Apple platforms, so we must cast through Int before widening.
+            let nodeId: Int64
+            if let i64 = element["id"] as? Int64 {
+                nodeId = i64
+            } else if let i = element["id"] as? Int {
+                nodeId = Int64(i)
+            } else {
+                continue
+            }
             nodeCoords[nodeId] = CLLocationCoordinate2D(latitude: lat, longitude: lon)
         }
 
@@ -197,14 +206,50 @@ final class OverpassAPIClient: OverpassAPIProviding, @unchecked Sendable {
         var holeWays: [OSMHoleWay] = []
 
         for element in elements {
-            guard let type = element["type"] as? String, type == "way",
-                  let wayId = element["id"] as? Int64
+            guard let type = element["type"] as? String, type == "way"
             else { continue }
 
-            let tags = element["tags"] as? [String: String] ?? [:]
-            let nodeIds = element["nodes"] as? [Int64] ?? []
+            // Accept both Int and Int64 for the same reason as node IDs above.
+            let wayId: Int64
+            if let i64 = element["id"] as? Int64 {
+                wayId = i64
+            } else if let i = element["id"] as? Int {
+                wayId = Int64(i)
+            } else {
+                continue
+            }
 
-            let coords = nodeIds.compactMap { nodeCoords[$0] }
+            let tags = element["tags"] as? [String: String] ?? [:]
+
+            // Resolve coordinates. Two Overpass response shapes are supported:
+            //
+            // 1. Geometry format ("out geom;" or "out body;" with ">"):
+            //    Each way element contains a "geometry" array of {"lat":…,"lon":…} dicts.
+            //    This is what the Overpass Turbo default and most compact queries return.
+            //
+            // 2. Full-node format ("out body; >; out skel qt;"):
+            //    Geometry is provided via separate "node" elements whose IDs are
+            //    referenced in the way's "nodes" array. Used in raw Overpass exports.
+            //
+            // We prefer inline geometry when present; fall back to the node lookup table.
+            let coords: [CLLocationCoordinate2D]
+            if let geometry = element["geometry"] as? [[String: Any]], !geometry.isEmpty {
+                coords = geometry.compactMap { entry -> CLLocationCoordinate2D? in
+                    guard let lat = entry["lat"] as? Double,
+                          let lon = entry["lon"] as? Double
+                    else { return nil }
+                    return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                }
+            } else {
+                // Fall back to node lookup.
+                let rawNodeIds = element["nodes"] as? [Any] ?? []
+                let nodeIds: [Int64] = rawNodeIds.compactMap { raw -> Int64? in
+                    if let i64 = raw as? Int64 { return i64 }
+                    if let i   = raw as? Int   { return Int64(i) }
+                    return nil
+                }
+                coords = nodeIds.compactMap { nodeCoords[$0] }
+            }
 
             let golf = tags["golf"]
             let natural = tags["natural"]

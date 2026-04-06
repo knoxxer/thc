@@ -16,4 +16,15 @@ public struct LiveRound: Codable, Identifiable, Sendable {
     public let currentScore: Int
     public let startedAt: Date
     public let updatedAt: Date
+
+    public init(
+        id: UUID, playerId: UUID, courseDataId: UUID?, courseName: String,
+        currentHole: Int, thruHole: Int, currentScore: Int,
+        startedAt: Date, updatedAt: Date
+    ) {
+        self.id = id; self.playerId = playerId; self.courseDataId = courseDataId
+        self.courseName = courseName; self.currentHole = currentHole
+        self.thruHole = thruHole; self.currentScore = currentScore
+        self.startedAt = startedAt; self.updatedAt = updatedAt
+    }
 }

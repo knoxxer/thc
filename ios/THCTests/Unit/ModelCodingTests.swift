@@ -324,4 +324,151 @@ final class ModelCodingTests: XCTestCase {
         XCTAssertNotNil(decoded["gross_score"], "grossScore should encode as gross_score")
         XCTAssertNotNil(decoded["played_at"], "playedAt should encode as played_at")
     }
+
+    // MARK: - LiveRound
+
+    func test_liveRoundDecodesFromSupabaseJSON() throws {
+        let json = """
+        {
+            "id": "cc0e8400-e29b-41d4-a716-446655440007",
+            "player_id": "550e8400-e29b-41d4-a716-446655440000",
+            "course_data_id": "990e8400-e29b-41d4-a716-446655440004",
+            "course_name": "Torrey Pines South",
+            "current_hole": 5,
+            "thru_hole": 4,
+            "current_score": -2,
+            "started_at": "2026-04-06T08:00:00Z",
+            "updated_at": "2026-04-06T09:15:00Z"
+        }
+        """
+
+        let live = try decoder.decode(LiveRound.self, from: json.data(using: .utf8)!)
+        XCTAssertEqual(live.courseName, "Torrey Pines South")
+        XCTAssertEqual(live.currentHole, 5)
+        XCTAssertEqual(live.thruHole, 4)
+        XCTAssertEqual(live.currentScore, -2)
+        XCTAssertNotNil(live.courseDataId)
+    }
+
+    func test_liveRoundDecodesNilCourseDataId() throws {
+        let json = """
+        {
+            "id": "cc0e8400-e29b-41d4-a716-446655440007",
+            "player_id": "550e8400-e29b-41d4-a716-446655440000",
+            "course_data_id": null,
+            "course_name": "Unknown Course",
+            "current_hole": 1,
+            "thru_hole": 0,
+            "current_score": 0,
+            "started_at": "2026-04-06T08:00:00Z",
+            "updated_at": "2026-04-06T08:00:00Z"
+        }
+        """
+
+        let live = try decoder.decode(LiveRound.self, from: json.data(using: .utf8)!)
+        XCTAssertNil(live.courseDataId, "null course_data_id should decode to nil")
+        XCTAssertEqual(live.thruHole, 0, "thru_hole = 0 means round not started")
+    }
+
+    // MARK: - RoundReaction
+
+    func test_roundReactionDecodesFromSupabaseJSON() throws {
+        let json = """
+        {
+            "id": "dd0e8400-e29b-41d4-a716-446655440008",
+            "round_id": "660e8400-e29b-41d4-a716-446655440001",
+            "player_id": "550e8400-e29b-41d4-a716-446655440000",
+            "emoji": "fire",
+            "comment": "Great round!",
+            "created_at": "2026-04-05T19:00:00Z"
+        }
+        """
+
+        let reaction = try decoder.decode(RoundReaction.self, from: json.data(using: .utf8)!)
+        XCTAssertEqual(reaction.emoji, "fire")
+        XCTAssertEqual(reaction.comment, "Great round!")
+    }
+
+    func test_roundReactionDecodesNilComment() throws {
+        let json = """
+        {
+            "id": "dd0e8400-e29b-41d4-a716-446655440008",
+            "round_id": "660e8400-e29b-41d4-a716-446655440001",
+            "player_id": "550e8400-e29b-41d4-a716-446655440000",
+            "emoji": "clap",
+            "comment": null,
+            "created_at": "2026-04-05T19:00:00Z"
+        }
+        """
+
+        let reaction = try decoder.decode(RoundReaction.self, from: json.data(using: .utf8)!)
+        XCTAssertEqual(reaction.emoji, "clap")
+        XCTAssertNil(reaction.comment, "null comment should decode to nil")
+    }
+
+    // MARK: - WatchRoundState + WatchScoreEntry
+
+    func test_watchRoundStateEncodesAndDecodes() throws {
+        let state = WatchRoundState(
+            courseName: "Torrey Pines South",
+            currentHole: 7,
+            par: 4,
+            greenLat: 32.8951,
+            greenLon: -117.2518,
+            greenPolygonJSON: nil,
+            nextHazardName: "Water Hazard",
+            nextHazardCarry: 185.0,
+            holeScores: [1: 4, 2: 5, 3: 3]
+        )
+
+        let encoded = try encoder.encode(state)
+        let decoded = try decoder.decode(WatchRoundState.self, from: encoded)
+
+        XCTAssertEqual(decoded.courseName, state.courseName)
+        XCTAssertEqual(decoded.currentHole, state.currentHole)
+        XCTAssertEqual(decoded.par, state.par)
+        XCTAssertEqual(decoded.greenLat, state.greenLat)
+        XCTAssertEqual(decoded.greenLon, state.greenLon)
+        XCTAssertNil(decoded.greenPolygonJSON)
+        XCTAssertEqual(decoded.nextHazardName, state.nextHazardName)
+        XCTAssertEqual(decoded.nextHazardCarry, state.nextHazardCarry)
+        XCTAssertEqual(decoded.holeScores[1], 4)
+        XCTAssertEqual(decoded.holeScores[2], 5)
+        XCTAssertEqual(decoded.holeScores[3], 3)
+    }
+
+    func test_watchScoreEntryEncodesAndDecodes() throws {
+        let entry = WatchScoreEntry(holeNumber: 5, strokes: 3)
+        let encoded = try encoder.encode(entry)
+        let decoded = try decoder.decode(WatchScoreEntry.self, from: encoded)
+
+        XCTAssertEqual(decoded.holeNumber, entry.holeNumber)
+        XCTAssertEqual(decoded.strokes, entry.strokes)
+    }
+
+    func test_watchRoundStateWithGreenPolygonJSON() throws {
+        let polygonJSON = """
+        {"type":"Polygon","coordinates":[[[-117.252,32.8998],[-117.251,32.8997],[-117.252,32.8998]]]}
+        """
+        let polygonData = polygonJSON.data(using: .utf8)!
+
+        let state = WatchRoundState(
+            courseName: "Test Course",
+            currentHole: 1,
+            par: 3,
+            greenLat: 32.8998,
+            greenLon: -117.252,
+            greenPolygonJSON: polygonData,
+            nextHazardName: nil,
+            nextHazardCarry: nil,
+            holeScores: [:]
+        )
+
+        let encoded = try encoder.encode(state)
+        let decoded = try decoder.decode(WatchRoundState.self, from: encoded)
+
+        XCTAssertNotNil(decoded.greenPolygonJSON, "greenPolygonJSON should survive encode/decode roundtrip")
+        XCTAssertNil(decoded.nextHazardName)
+        XCTAssertNil(decoded.nextHazardCarry)
+    }
 }

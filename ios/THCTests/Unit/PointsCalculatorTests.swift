@@ -6,7 +6,6 @@
 // All tests compile but fail (red) until PointsCalculator is implemented (M5.2).
 
 import XCTest
-import Shared
 @testable import THC
 
 final class PointsCalculatorTests: XCTestCase {

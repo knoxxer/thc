@@ -213,8 +213,13 @@ final class GolfCourseAPIClient: GolfCourseAPIProviding, @unchecked Sendable {
 
     // MARK: - Response Wrappers
 
+    // The GolfCourseAPI search endpoint wraps results in a "data" key.
+    // Example: { "data": [...], "total": 2, "page": 1, "per_page": 20 }
     private struct SearchResponse: Decodable {
-        let courses: [GolfCourseAPIResult]
+        let data: [GolfCourseAPIResult]
+
+        /// Convenience accessor — callers get a uniform `courses` name.
+        var courses: [GolfCourseAPIResult] { data }
     }
 }
 
