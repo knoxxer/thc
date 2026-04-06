@@ -17,4 +17,16 @@ public struct SeasonStanding: Codable, Identifiable, Sendable {
     public let bestNPoints: Int
     public let bestRoundPoints: Int
     public let bestNetVsPar: Int
+
+    public init(
+        playerId: UUID, seasonId: UUID, playerName: String, playerSlug: String,
+        handicapIndex: Double?, avatarUrl: String?, totalRounds: Int, isEligible: Bool,
+        bestNPoints: Int, bestRoundPoints: Int, bestNetVsPar: Int
+    ) {
+        self.playerId = playerId; self.seasonId = seasonId; self.playerName = playerName
+        self.playerSlug = playerSlug; self.handicapIndex = handicapIndex
+        self.avatarUrl = avatarUrl; self.totalRounds = totalRounds; self.isEligible = isEligible
+        self.bestNPoints = bestNPoints; self.bestRoundPoints = bestRoundPoints
+        self.bestNetVsPar = bestNetVsPar
+    }
 }

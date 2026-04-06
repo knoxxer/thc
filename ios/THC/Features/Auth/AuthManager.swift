@@ -21,6 +21,8 @@ final class AuthManager: @unchecked Sendable {
         case signedIn(Player)
         /// Authenticated via Google OAuth but no matching `players` row found.
         case notAPlayer
+        /// A network or unexpected error occurred during player resolution (Fix #19).
+        case error(String)
 
         static func == (lhs: AuthState, rhs: AuthState) -> Bool {
             switch (lhs, rhs) {
@@ -28,6 +30,7 @@ final class AuthManager: @unchecked Sendable {
             case (.signedOut, .signedOut): return true
             case (.signedIn(let a), .signedIn(let b)): return a.id == b.id
             case (.notAPlayer, .notAPlayer): return true
+            case (.error(let a), .error(let b)): return a == b
             default: return false
             }
         }
@@ -154,8 +157,12 @@ final class AuthManager: @unchecked Sendable {
             } else {
                 state = .notAPlayer
             }
+        } catch let urlError as URLError {
+            // Fix #19: Distinguish network errors from "not a player".
+            state = .error("Network error: \(urlError.localizedDescription)")
         } catch {
-            state = .notAPlayer
+            // Non-network errors (e.g., decoding) -- still surface the error.
+            state = .error(error.localizedDescription)
         }
     }
 }

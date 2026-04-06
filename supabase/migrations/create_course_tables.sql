@@ -122,6 +122,9 @@ CREATE TRIGGER course_holes_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- RLS: authenticated users read, insert, update, and delete.
+-- NOTE (Fix #17): INSERT/UPDATE intentionally does NOT enforce saved_by = auth.uid().
+-- This is a design decision for the 10-user trust group: any authenticated user
+-- can save or edit any green pin for any hole, enabling collaborative course mapping.
 ALTER TABLE course_holes ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Authenticated users can read course_holes" ON course_holes;

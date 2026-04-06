@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA111111111111111111AAA1 /* TapAndSaveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA222222222222222222AAA2 /* TapAndSaveService.swift */; };
+		BB111111111111111111BBB1 /* PushNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB222222222222222222BBB2 /* PushNotificationService.swift */; };
+		CC111111111111111111CCC1 /* WatchBatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC222222222222222222CCC2 /* WatchBatteryMonitor.swift */; };
 		003A52B8B0397DC1DE27BE6A /* LiveRoundFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38BBBF9F741F7EDA59BFE075 /* LiveRoundFeedView.swift */; };
 		0168A4856B6160BCC2AF2ACB /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A6B3AFBB3DF89B72A0E3C7 /* LoginView.swift */; };
 		067E8B1FAECDF24B974BD03C /* RoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137E5C235FD03B8E49327B09 /* RoundManager.swift */; };
@@ -14,6 +17,7 @@
 		0D3BE67EC09364DBB45B93DD /* HazardDistanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E73F2A5D1C77E214EFA3157B /* HazardDistanceTests.swift */; };
 		0E9169FD661107FA3812A7B6 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559209ABA845CBB02F50D5BB /* Constants.swift */; };
 		0EBC1BDEB0AF966D042EBE36 /* Shared_iOS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F0D8B33C7DDDAB6E18B3C8F2 /* Shared_iOS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		121C4EB61E558229C7C3CB1E /* MockCourseDataDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF9C5ACA173B45E4066854C /* MockCourseDataDependencies.swift */; };
 		17CBAB8CA9FDB2E8173D8FDE /* BackgroundRefreshTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9240E396296378E948F0DAAD /* BackgroundRefreshTests.swift */; };
 		18BA7D8D4477335F2F714A52 /* LiveScoringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 972347C7BFCEB4B67E9B1CC5 /* LiveScoringTests.swift */; };
 		190D45E20CE32B46A0B92D44 /* SupabaseClientProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4DAC4FB2176DF23FF8D0DC6 /* SupabaseClientProvider.swift */; };
@@ -85,6 +89,7 @@
 		B902AE5A681A08F66F2BDAB8 /* HoleScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 088C8612B287314C39C1E7E2 /* HoleScore.swift */; };
 		B96F9C6ABA8FB580CD2A7414 /* OverpassAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1023CA1E462A480FB6B8B55 /* OverpassAPIClient.swift */; };
 		B99D629F2F2FD28AE2F9986B /* Round.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9B53D29D35C38FFAD736CD /* Round.swift */; };
+		BC75445920551D07ADC01E05 /* MockLiveRoundBroadcaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3234DE9096B233324768EDB /* MockLiveRoundBroadcaster.swift */; };
 		C12AEA409D69DD9C7800FAE3 /* LeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCC1901AE7DC7362696B1111 /* LeaderboardView.swift */; };
 		C1CF01E911FF8A2FE4BCEC39 /* RoundManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 724D3C8F6157A4581FAED374 /* RoundManagerTests.swift */; };
 		C276D3CE7422824A14183719 /* TapAndSaveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7C3E1876858F3CA2A18DC1 /* TapAndSaveTests.swift */; };
@@ -188,6 +193,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA222222222222222222AAA2 /* TapAndSaveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapAndSaveService.swift; sourceTree = "<group>"; };
+		BB222222222222222222BBB2 /* PushNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationService.swift; sourceTree = "<group>"; };
+		CC222222222222222222CCC2 /* WatchBatteryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchBatteryMonitor.swift; sourceTree = "<group>"; };
 		01245EB7E020163333755D60 /* PointsCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsCalculator.swift; sourceTree = "<group>"; };
 		01CC90F7663D4052F315173F /* THCWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = THCWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		023953724C45F8785D262044 /* StandingsGlanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandingsGlanceView.swift; sourceTree = "<group>"; };
@@ -207,6 +215,7 @@
 		1CF7C22FF4EE3E2CC49641BB /* LocationManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManagerTests.swift; sourceTree = "<group>"; };
 		1E89972C83D75922C19C80D3 /* THCApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THCApp.swift; sourceTree = "<group>"; };
 		212FADA3F057003D5B34CFF2 /* THCWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THCWatchApp.swift; sourceTree = "<group>"; };
+		2AF9C5ACA173B45E4066854C /* MockCourseDataDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockCourseDataDependencies.swift; sourceTree = "<group>"; };
 		2C4C0ED6C280DA27074F1F53 /* StandingsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandingsViewModelTests.swift; sourceTree = "<group>"; };
 		2DE5CD5958028438B638DB38 /* PhoneConnectivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneConnectivityService.swift; sourceTree = "<group>"; };
 		33937A8BE37E9F6D63C13ECB /* SocialService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialService.swift; sourceTree = "<group>"; };
@@ -247,6 +256,7 @@
 		9B9B53D29D35C38FFAD736CD /* Round.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Round.swift; sourceTree = "<group>"; };
 		9CA7C9BA21D66C021AA9AD45 /* PushNotificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationTests.swift; sourceTree = "<group>"; };
 		A0A281B551F3A75C2377EC34 /* ActiveRoundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveRoundView.swift; sourceTree = "<group>"; };
+		A3234DE9096B233324768EDB /* MockLiveRoundBroadcaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockLiveRoundBroadcaster.swift; sourceTree = "<group>"; };
 		A40F54F86A51E8434262C8DF /* OfflineStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineStorageTests.swift; sourceTree = "<group>"; };
 		A529F86DF40B4969F10D742F /* LiveScoringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveScoringView.swift; sourceTree = "<group>"; };
 		AD7C3E1876858F3CA2A18DC1 /* TapAndSaveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapAndSaveTests.swift; sourceTree = "<group>"; };
@@ -454,6 +464,7 @@
 				1522DCB4476BE817F8665E1C /* HoleOverviewView.swift */,
 				7A0FBD81BD81EB346280C539 /* LocationManager.swift */,
 				137E5C235FD03B8E49327B09 /* RoundManager.swift */,
+				CC222222222222222222CCC2 /* WatchBatteryMonitor.swift */,
 			);
 			path = GPS;
 			sourceTree = "<group>";
@@ -550,9 +561,11 @@
 				09E14B7303A812067373CB50 /* NoOpOfflineStorage.swift */,
 				9024398E2A5F8485C4EB2B83 /* OfflineStorage.swift */,
 				C1023CA1E462A480FB6B8B55 /* OverpassAPIClient.swift */,
+				BB222222222222222222BBB2 /* PushNotificationService.swift */,
 				33937A8BE37E9F6D63C13ECB /* SocialService.swift */,
 				E4DAC4FB2176DF23FF8D0DC6 /* SupabaseClientProvider.swift */,
 				DC02BBB3CD1183B5BE879835 /* SyncService.swift */,
+				AA222222222222222222AAA2 /* TapAndSaveService.swift */,
 				6BCA852C24F93F16A70EB5C3 /* WatchSyncService.swift */,
 			);
 			path = Services;
@@ -593,6 +606,8 @@
 			isa = PBXGroup;
 			children = (
 				C8AE9F112E68672B21AEB3FE /* MockCLLocationManager.swift */,
+				2AF9C5ACA173B45E4066854C /* MockCourseDataDependencies.swift */,
+				A3234DE9096B233324768EDB /* MockLiveRoundBroadcaster.swift */,
 				3E46FCC9C4579726F8AB1B0B /* MockSupabaseClient.swift */,
 				745751ED0C36EC12535F94F3 /* MockURLSession.swift */,
 				D909F76774FB15869E037A69 /* MockWCSession.swift */,
@@ -803,6 +818,8 @@
 				18BA7D8D4477335F2F714A52 /* LiveScoringTests.swift in Sources */,
 				E443D7396B34761763E80271 /* LocationManagerTests.swift in Sources */,
 				83D17C82E00E4B1511EE6878 /* MockCLLocationManager.swift in Sources */,
+				121C4EB61E558229C7C3CB1E /* MockCourseDataDependencies.swift in Sources */,
+				BC75445920551D07ADC01E05 /* MockLiveRoundBroadcaster.swift in Sources */,
 				E993FD30A18DAADA99B26A07 /* MockSupabaseClient.swift in Sources */,
 				6AAA57CB99617518A2AE36DF /* MockURLSession.swift in Sources */,
 				EE9FB6DE0A0889803B7F62AA /* MockWCSession.swift in Sources */,
@@ -893,12 +910,15 @@
 				C76B0B388F9B6B5F228E85EE /* Secrets.swift in Sources */,
 				27B04AD976CCC78C440F188A /* ShareCardGenerator.swift in Sources */,
 				085562A9B49F9F430F115D3A /* ShareCardView.swift in Sources */,
+				BB111111111111111111BBB1 /* PushNotificationService.swift in Sources */,
 				1C58371904CB0170FC9FE103 /* SocialService.swift in Sources */,
 				8852E5D5BCB02F743D2B88D2 /* StandingsViewModel.swift in Sources */,
+				AA111111111111111111AAA1 /* TapAndSaveService.swift in Sources */,
 				190D45E20CE32B46A0B92D44 /* SupabaseClientProvider.swift in Sources */,
 				ABE1D21424B5D47FAB0F6372 /* SyncService.swift in Sources */,
 				C80CF3F416942FA844E84BEF /* THCApp.swift in Sources */,
 				914046D322A169EF95B95CE2 /* TapAndSaveView.swift in Sources */,
+				CC111111111111111111CCC1 /* WatchBatteryMonitor.swift in Sources */,
 				FBE717CEDA8ADE00C857D966 /* WatchSyncService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -933,6 +953,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -949,14 +970,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thc.app.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Release;
 		};
@@ -984,14 +1001,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thc.app.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Debug;
 		};
@@ -1220,6 +1233,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

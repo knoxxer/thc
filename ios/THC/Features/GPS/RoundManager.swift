@@ -3,6 +3,22 @@ import CoreLocation
 import Observation
 import Shared
 
+// MARK: - Live Round Broadcasting Protocol (Fix #11)
+
+/// Abstracts live round CRUD so RoundManager doesn't depend on Supabase directly.
+protocol LiveRoundBroadcasting: Sendable {
+    func startLiveRound(
+        id: UUID, playerId: UUID, courseName: String,
+        courseDataId: UUID?, currentHole: Int, thruHole: Int, currentScore: Int
+    ) async throws
+
+    func updateLiveRound(
+        id: UUID, currentHole: Int, thruHole: Int, currentScore: Int
+    ) async throws
+
+    func deleteLiveRound(id: UUID) async throws
+}
+
 /// Orchestrates an active round: hole progression, auto-advance, score accumulation,
 /// live round broadcasting to Supabase, and offline persistence.
 @Observable
@@ -50,7 +66,7 @@ final class RoundManager: @unchecked Sendable {
     private let locationManager: LocationManager
     private let offlineStorage: OfflineStorageProviding
     private let syncService: SyncServiceProviding
-    private let supabase: SupabaseClientProviding
+    private let liveRoundBroadcaster: LiveRoundBroadcasting
 
     private var localRoundId: UUID = UUID()
     private var liveRoundId: UUID?
@@ -67,7 +83,7 @@ final class RoundManager: @unchecked Sendable {
         locationManager: LocationManager,
         offlineStorage: OfflineStorageProviding,
         syncService: SyncServiceProviding,
-        supabase: SupabaseClientProviding
+        liveRoundBroadcaster: LiveRoundBroadcasting
     ) {
         self.courseDetail = courseDetail
         self.player = player
@@ -75,7 +91,7 @@ final class RoundManager: @unchecked Sendable {
         self.locationManager = locationManager
         self.offlineStorage = offlineStorage
         self.syncService = syncService
-        self.supabase = supabase
+        self.liveRoundBroadcaster = liveRoundBroadcaster
     }
 
     // MARK: - Round Lifecycle
@@ -148,6 +164,11 @@ final class RoundManager: @unchecked Sendable {
 
     @discardableResult
     func finishRound() async throws -> LocalRound {
+        // Fix #22: Guard against finishing a round that was never started.
+        guard state != .notStarted else {
+            throw RoundManagerError.roundNotStarted
+        }
+
         locationManager.stopRoundTracking()
         locationTask?.cancel()
 
@@ -250,95 +271,75 @@ final class RoundManager: @unchecked Sendable {
         let nextHole = holeNum + 1
         guard let nextHoleData = courseDetail?.holes.first(where: { $0.holeNumber == nextHole }) else { return }
 
+        // Fix #12: Capture the CURRENT hole's green data, not `currentHoleData`
+        // (which would be wrong if recordHoleScore already advanced `currentHole`).
+        let scoredHoleData = courseDetail?.holes.first(where: { $0.holeNumber == holeNum })
+
         let userLoc = location
 
         // Condition 1: within 30 yards of next tee box
         if let teeLat = nextHoleData.teeLat, let teeLon = nextHoleData.teeLon {
             let teeLoc = CLLocation(latitude: teeLat, longitude: teeLon)
             let distanceMeters = userLoc.distance(from: teeLoc)
-            if distanceMeters <= 27.4 {  // 30 yards in meters
+            if distanceMeters <= Constants.autoAdvanceThresholdMeters {
                 goToHole(nextHole)
                 return
             }
         }
 
-        // Condition 2: more than 50 yards from current green (fallback)
-        if let currHoleData = currentHoleData,
-           let gLat = currHoleData.greenLat, let gLon = currHoleData.greenLon {
+        // Condition 2: more than 50 yards from the scored hole's green (fallback)
+        if let gLat = scoredHoleData?.greenLat, let gLon = scoredHoleData?.greenLon {
             let greenLoc = CLLocation(latitude: gLat, longitude: gLon)
             let distanceMeters = userLoc.distance(from: greenLoc)
-            if distanceMeters > 45.7 {  // 50 yards in meters
+            if distanceMeters > Constants.autoAdvanceFallbackMeters {
                 goToHole(nextHole)
             }
         }
     }
 
-    // MARK: - Live Round Broadcasting
+    // MARK: - Live Round Broadcasting (via LiveRoundBroadcasting protocol, Fix #11)
 
     private func broadcastLiveRoundStart() async throws {
         let liveRoundId = UUID()
         self.liveRoundId = liveRoundId
 
-        struct LiveRoundInsert: Encodable {
-            let id: String
-            let playerId: String
-            let courseName: String
-            let courseDataId: String?
-            let currentHole: Int
-            let thruHole: Int
-            let currentScore: Int
-            enum CodingKeys: String, CodingKey {
-                case id
-                case playerId = "player_id"
-                case courseName = "course_name"
-                case courseDataId = "course_data_id"
-                case currentHole = "current_hole"
-                case thruHole = "thru_hole"
-                case currentScore = "current_score"
-            }
-        }
-
-        let payload = LiveRoundInsert(
-            id: liveRoundId.uuidString.lowercased(),
-            playerId: player.id.uuidString.lowercased(),
+        try await liveRoundBroadcaster.startLiveRound(
+            id: liveRoundId,
+            playerId: player.id,
             courseName: courseDetail?.course.name ?? "",
-            courseDataId: courseDetail?.course.id.uuidString.lowercased(),
+            courseDataId: courseDetail?.course.id,
             currentHole: 1,
             thruHole: 0,
             currentScore: 0
         )
-        try await supabase.client.from("live_rounds").insert(payload).execute()
     }
 
     private func updateLiveRound(thruHole: Int, scoreVsPar: Int) async throws {
         guard let liveId = liveRoundId else { return }
-
-        struct LiveRoundUpdate: Encodable {
-            let currentHole: Int
-            let thruHole: Int
-            let currentScore: Int
-            enum CodingKeys: String, CodingKey {
-                case currentHole = "current_hole"
-                case thruHole = "thru_hole"
-                case currentScore = "current_score"
-            }
-        }
-
-        let update = LiveRoundUpdate(currentHole: currentHole, thruHole: thruHole, currentScore: scoreVsPar)
-        try await supabase.client
-            .from("live_rounds")
-            .update(update)
-            .eq("id", value: liveId.uuidString.lowercased())
-            .execute()
+        try await liveRoundBroadcaster.updateLiveRound(
+            id: liveId,
+            currentHole: currentHole,
+            thruHole: thruHole,
+            currentScore: scoreVsPar
+        )
     }
 
     private func deleteLiveRound() async throws {
         guard let liveId = liveRoundId else { return }
-        try await supabase.client
-            .from("live_rounds")
-            .delete()
-            .eq("id", value: liveId.uuidString.lowercased())
-            .execute()
+        try await liveRoundBroadcaster.deleteLiveRound(id: liveId)
         self.liveRoundId = nil
+    }
+}
+
+// MARK: - RoundManager Errors
+
+enum RoundManagerError: LocalizedError {
+    case roundNotStarted
+
+    var errorDescription: String? {
+        switch self {
+        case .roundNotStarted:
+            return "Cannot finish a round that has not been started."
+        }
     }
 }

@@ -2,20 +2,41 @@
 // THCTests/Mocks
 //
 // Implements SupabaseClientProviding for unit/service tests.
-// Captures all write operations; stubs reads by table name.
-// Tests assert on insertCalls, updateCalls, deleteCalls to prevent
-// unexpected I/O.
+// Wraps a real SupabaseClient pointed at loopback so protocol conformance
+// compiles. Tests use the mock-specific helper properties (insertCalls,
+// updateCalls, etc.) to assert on behavior without hitting a real backend.
 
 import Foundation
+import Supabase
+import AuthenticationServices
 @testable import THC
 
-// MARK: - Protocol (mirrors production interface)
+// MARK: - Mock
 
-// NOTE: The production SupabaseClientProviding protocol is defined in
-// THC/Services/SupabaseClientProvider.swift. This mock satisfies it
-// so it can be injected anywhere the protocol is expected.
+final class MockSupabaseClient: SupabaseClientProviding, @unchecked Sendable {
 
-final class MockSupabaseClient: SupabaseClientProviding {
+    // MARK: - SupabaseClientProviding conformance
+
+    let client: SupabaseClient = SupabaseClient(
+        supabaseURL: URL(string: "http://127.0.0.1:54321")!,
+        supabaseKey: "test-anon-key"
+    )
+
+    var currentUser: User? {
+        get async { nil }
+    }
+
+    func signInWithGoogle(presenting anchor: ASPresentationAnchor) async throws {
+        // No-op in tests
+    }
+
+    func signOut() async throws {
+        // No-op in tests
+    }
+
+    func authStateChanges() -> AsyncStream<AuthChangeEvent> {
+        AsyncStream { continuation in continuation.finish() }
+    }
 
     // MARK: - Captured calls (assert on these in tests)
 
@@ -60,11 +81,11 @@ final class MockSupabaseClient: SupabaseClientProviding {
 
     // MARK: - Auth stubs
 
-    var stubbedCurrentUser: (any Sendable)?  // Stub for auth user
-    var stubbedSession: (any Sendable)?      // Stub for auth session
-    var authRefreshError: Error?             // Set to test refresh failure
+    var stubbedCurrentUser: (any Sendable)?
+    var stubbedSession: (any Sendable)?
+    var authRefreshError: Error?
 
-    // MARK: - SupabaseClientProviding conformance
+    // MARK: - Mock helper methods (used by tests)
 
     func insert(into table: String, payload: Any) async throws {
         if let error = insertError {

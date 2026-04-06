@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import CoreLocation
 import Shared
 
 // MARK: - SwiftData Models
@@ -309,10 +310,10 @@ final class OfflineStorage: OfflineStorageProviding, @unchecked Sendable {
         }
         let radiusMeters = radiusKm * 1000
         return all.filter { course in
-            let distanceMeters = haversineMeters(
-                lat1: lat, lon1: lon,
-                lat2: course.lat, lon2: course.lon
-            )
+            // Fix #15: Use shared DistanceCalculator instead of duplicated haversine.
+            let from = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            let to = CLLocationCoordinate2D(latitude: course.lat, longitude: course.lon)
+            let distanceMeters = DistanceCalculator.distanceInMeters(from: from, to: to)
             return distanceMeters <= radiusMeters
         }
     }
@@ -330,18 +331,7 @@ final class OfflineStorage: OfflineStorageProviding, @unchecked Sendable {
         try context.save()
     }
 
-    // MARK: - Haversine (internal proximity check)
-
-    private func haversineMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double) -> Double {
-        let earthRadius = 6_371_000.0
-        let dLat = (lat2 - lat1) * .pi / 180
-        let dLon = (lon2 - lon1) * .pi / 180
-        let a = sin(dLat / 2) * sin(dLat / 2)
-            + cos(lat1 * .pi / 180) * cos(lat2 * .pi / 180)
-            * sin(dLon / 2) * sin(dLon / 2)
-        let c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        return earthRadius * c
-    }
+    // Fix #15: Removed duplicated haversineMeters — now uses DistanceCalculator.distanceInMeters.
 }
 
 // MARK: - Errors

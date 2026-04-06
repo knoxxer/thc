@@ -70,9 +70,8 @@ final class CourseSetupViewModel: @unchecked Sendable {
     /// Selects a course from search results and loads its full detail.
     @discardableResult
     func selectCourse(_ result: CourseSearchResult) async throws -> CourseDetail {
-        // Build a CourseData placeholder with the API result's ID
-        // The service will upsert it if needed.
-        let courseId = UUID()   // service will deduplicate by golfcourseapi_id
+        // Upsert the course by golfcourseapi_id and get the real Supabase UUID.
+        let courseId = try await courseDataService.getOrCreateCourse(from: result)
         guard let detail = try await courseDataService.getCourseDetail(courseId: courseId) else {
             throw CourseSetupError.courseNotFound
         }

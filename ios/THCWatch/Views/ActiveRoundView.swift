@@ -5,8 +5,8 @@ import Shared
 /// Main view during an active round. Shows current hole, par, and distances to green.
 /// Displays "No active round" when idle.
 struct ActiveRoundView: View {
-    @EnvironmentObject private var connectivityService: PhoneConnectivityService
-    @EnvironmentObject private var gpsService: IndependentGPSService
+    @Environment(PhoneConnectivityService.self) private var connectivityService
+    @Environment(IndependentGPSService.self) private var gpsService
 
     @State private var showScoreEntry = false
     @State private var showStandings = false
@@ -31,12 +31,12 @@ struct ActiveRoundView: View {
         .sheet(isPresented: $showScoreEntry) {
             if let state = roundState {
                 QuickScoreView(holeNumber: state.currentHole, par: state.par)
-                    .environmentObject(connectivityService)
+                    .environment(connectivityService)
             }
         }
         .sheet(isPresented: $showStandings) {
             StandingsGlanceView()
-                .environmentObject(connectivityService)
+                .environment(connectivityService)
         }
         .alert("Low Battery", isPresented: $showBatteryWarning) {
             Button("OK", role: .cancel) {}
@@ -148,7 +148,7 @@ struct ActiveRoundView: View {
         .padding()
         .sheet(isPresented: $showStandings) {
             StandingsGlanceView()
-                .environmentObject(connectivityService)
+                .environment(connectivityService)
         }
     }
 
@@ -166,7 +166,7 @@ struct ActiveRoundView: View {
 #Preview {
     NavigationStack {
         ActiveRoundView()
-            .environmentObject(PhoneConnectivityService())
-            .environmentObject(IndependentGPSService())
+            .environment(PhoneConnectivityService())
+            .environment(IndependentGPSService())
     }
 }

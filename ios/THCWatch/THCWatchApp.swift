@@ -4,15 +4,16 @@ import Shared
 
 @main
 struct THCWatchApp: App {
-    @StateObject private var connectivityService = PhoneConnectivityService()
-    @StateObject private var gpsService = IndependentGPSService()
+    // Fix #20: Migrated from @StateObject/ObservableObject to @State/@Observable.
+    @State private var connectivityService = PhoneConnectivityService()
+    @State private var gpsService = IndependentGPSService()
 
     var body: some Scene {
         WindowGroup {
             NavigationStack {
                 ActiveRoundView()
-                    .environmentObject(connectivityService)
-                    .environmentObject(gpsService)
+                    .environment(connectivityService)
+                    .environment(gpsService)
             }
         }
     }

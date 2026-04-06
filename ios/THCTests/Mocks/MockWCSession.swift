@@ -12,22 +12,8 @@ import Foundation
 import WatchConnectivity
 @testable import THC
 
-// MARK: - Protocol
-
-protocol WCSessionProtocol: AnyObject {
-    var isReachable: Bool { get }
-    var isPaired: Bool { get }
-    var isWatchAppInstalled: Bool { get }
-    var delegate: WCSessionDelegate? { get set }
-
-    func activate()
-    func transferUserInfo(_ userInfo: [String: Any]) -> WCSessionUserInfoTransfer
-    func sendMessage(
-        _ message: [String: Any],
-        replyHandler: (([String: Any]) -> Void)?,
-        errorHandler: ((Error) -> Void)?
-    )
-}
+// WCSessionProtocol is defined in THC/Services/WatchSyncService.swift
+// MockWCSession conforms to it for test injection.
 
 // MARK: - Mock
 
@@ -64,8 +50,10 @@ final class MockWCSession: WCSessionProtocol {
     @discardableResult
     func transferUserInfo(_ userInfo: [String: Any]) -> WCSessionUserInfoTransfer {
         transferredUserInfoItems.append(userInfo)
-        // Return a dummy transfer object (not used in assertions)
-        return WCSession.default.transferUserInfo(userInfo)
+        // WCSessionUserInfoTransfer can't be constructed directly.
+        // The return value is @discardableResult and never inspected in tests.
+        // Use NSObject + unsafeBitCast as a workaround for the final class.
+        return unsafeBitCast(NSObject(), to: WCSessionUserInfoTransfer.self)
     }
 
     func sendMessage(
@@ -81,6 +69,10 @@ final class MockWCSession: WCSessionProtocol {
         } else {
             errorHandler?(WatchConnectivityError.notReachable)
         }
+    }
+
+    func updateApplicationContext(_ applicationContext: [String: Any]) throws {
+        // No-op in mock — standings push is tested via transferUserInfo
     }
 
     // MARK: - Simulation helpers

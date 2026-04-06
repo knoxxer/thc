@@ -18,6 +18,8 @@ struct ContentView: View {
             LoginView()
         case .notAPlayer:
             notAPlayerView
+        case .error(let message):
+            errorView(message: message)
         case .signedIn(let player):
             MainTabView(
                 player: player,
@@ -39,6 +41,30 @@ struct ContentView: View {
             Text("Loading…")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+    }
+
+    private func errorView(message: String) -> some View {
+        VStack(spacing: 20) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.system(size: 56))
+                .foregroundStyle(.orange)
+            Text("Connection Error")
+                .font(.title2.bold())
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+            Button("Retry") {
+                Task {
+                    // Re-trigger session resolution
+                    await authManager.signOut()
+                }
+            }
+            .buttonStyle(.borderedProminent)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))

@@ -7,12 +7,14 @@
 import XCTest
 import CoreLocation
 import SwiftData
+import Shared
 @testable import THC
 
 final class RoundManagerTests: XCTestCase {
 
     var mockCLManager: MockCLLocationManager!
-    var mockSupabase: MockSupabaseClient!
+    var mockSupabase: StubSupabaseClient!
+    var mockBroadcaster: MockLiveRoundBroadcaster!
     var container: ModelContainer!
     var roundManager: RoundManager!
     var courseDetail: CourseDetail!
@@ -22,7 +24,8 @@ final class RoundManagerTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         mockCLManager = MockCLLocationManager()
-        mockSupabase = MockSupabaseClient()
+        mockSupabase = StubSupabaseClient()
+        mockBroadcaster = MockLiveRoundBroadcaster()
         container = try TestModelContainer.create()
 
         player = Player.fixture()
@@ -30,8 +33,9 @@ final class RoundManagerTests: XCTestCase {
         courseDetail = CourseDetail.fixture()
 
         let locationManager = LocationManager(clManager: mockCLManager)
-        let offlineStorage = OfflineStorage(modelContainer: container)
-        let syncService = SyncService(supabase: mockSupabase, offlineStorage: offlineStorage)
+        let context = ModelContext(container)
+        let offlineStorage = OfflineStorage(context: context)
+        let syncService = SyncService(supabase: mockSupabase, storage: offlineStorage)
 
         roundManager = RoundManager(
             courseDetail: courseDetail,
@@ -39,7 +43,8 @@ final class RoundManagerTests: XCTestCase {
             season: season,
             locationManager: locationManager,
             offlineStorage: offlineStorage,
-            syncService: syncService
+            syncService: syncService,
+            liveRoundBroadcaster: mockBroadcaster
         )
     }
 
@@ -50,6 +55,7 @@ final class RoundManagerTests: XCTestCase {
         season = nil
         container = nil
         mockSupabase = nil
+        mockBroadcaster = nil
         mockCLManager = nil
         try await super.tearDown()
     }
@@ -72,24 +78,25 @@ final class RoundManagerTests: XCTestCase {
         }
     }
 
-    // MARK: - §2.12.2 Start round inserts live_rounds row
+    // MARK: - §2.12.2 Start round broadcasts live round and starts GPS
 
-    func test_startRound_insertsLiveRoundToSupabase() async {
+    func test_startRound_broadcastsLiveRoundAndStartsGPS() async {
         // When
         await roundManager.startRound()
 
-        // Then: MockSupabaseClient captured one insert into live_rounds
-        let liveRoundInsert = mockSupabase.insertCalls.first { $0.table == "live_rounds" }
-        XCTAssertNotNil(liveRoundInsert, "startRound should insert a row into live_rounds")
-        if let payload = liveRoundInsert?.payload as? [String: Any] {
-            XCTAssertNotNil(payload["player_id"], "live_rounds insert should include player_id")
-            XCTAssertNotNil(payload["course_name"], "live_rounds insert should include course_name")
-        }
+        // Then: LocationManager.startRoundTracking was called (CLManager started)
+        XCTAssertEqual(mockCLManager.startUpdatingLocationCallCount, 1,
+                       "startRound should start GPS tracking")
+
+        // And: live round broadcaster received startLiveRound call
+        XCTAssertEqual(mockBroadcaster.startCalls.count, 1,
+                       "startRound should call startLiveRound on the broadcaster")
+        XCTAssertEqual(mockBroadcaster.startCalls.first?.courseName, "Test Course")
     }
 
-    // MARK: - §2.12.3 Record hole score saves to SwiftData
+    // MARK: - §2.12.3 Record hole score saves to holeScores
 
-    func test_recordHoleScore_savesToSwiftData() async throws {
+    func test_recordHoleScore_savesToHoleScores() async throws {
         // Given: active round on hole 1
         await roundManager.startRound()
 
@@ -127,49 +134,121 @@ final class RoundManagerTests: XCTestCase {
     // MARK: - §2.12.5 Auto-advance: 30 yards from next tee
 
     func test_autoAdvance_30yardsFromNextTee_advances() async {
-        // Given: current hole = 5; mock location within 30m of hole 6 tee
+        // Given: active round; record hole 5 score so auto-advance is eligible
         await roundManager.startRound()
         roundManager.goToHole(5)
-        // Record score for hole 5 first
         await roundManager.recordHoleScore(RoundManager.HoleScoreEntry(strokes: 4))
 
-        var advancedToHole = 0
-        roundManager.onHoleAdvanced = { hole in
-            advancedToHole = hole
-        }
-
-        // Simulate location near hole 6 tee
-        let hole6Tee = courseDetail.holes[5]  // index 5 = hole 6
-        guard let teeLat = hole6Tee.teeLat, let teeLon = hole6Tee.teeLon else {
+        // Hole 6 tee from the fixture
+        let hole6 = courseDetail.holes[5]  // index 5 = hole 6
+        guard let teeLat = hole6.teeLat, let teeLon = hole6.teeLon else {
             XCTFail("Fixture must include tee coordinates for hole 6")
             return
         }
-        let nearTee = CLLocation(latitude: teeLat, longitude: teeLon)
+
+        // When: inject a location right on hole 6 tee — within 27.4m threshold
+        let nearTee = CLLocation(
+            coordinate: CLLocationCoordinate2D(latitude: teeLat, longitude: teeLon),
+            altitude: 30,
+            horizontalAccuracy: 5,
+            verticalAccuracy: 5,
+            course: 0,
+            speed: 1.0,
+            timestamp: Date()
+        )
         mockCLManager.locations = [nearTee]
         mockCLManager.startUpdatingLocation()
 
-        // Then: auto-advance to hole 6
-        XCTAssertEqual(advancedToHole, 6, "Should auto-advance to hole 6 when near its tee")
+        // Yield to let the async locationTask process the update
+        for _ in 0..<10 {
+            await Task.yield()
+        }
+
+        // Then: currentHole advanced to 6
+        XCTAssertEqual(roundManager.currentHole, 6,
+                       "Should auto-advance to hole 6 when within 30 yards of its tee")
     }
 
     // MARK: - §2.12.6 Auto-advance: 50 yards from green (no tee box)
 
     func test_autoAdvance_50yardsFromGreen_noTeeBox_advances() async {
-        // Given: current hole = 5; no tee coordinate for hole 6; user 50+ yards from hole 5 green
+        // Given: current hole = 5; record score so auto-advance is eligible
         await roundManager.startRound()
         roundManager.goToHole(5)
         await roundManager.recordHoleScore(RoundManager.HoleScoreEntry(strokes: 5))
 
-        var advancedToHole = 0
-        roundManager.onHoleAdvanced = { hole in advancedToHole = hole }
+        // Build a course where hole 6 has no tee coordinates
+        let courseId = UUID()
+        var holes: [CourseHole] = (1...18).map { (i: Int) -> CourseHole in
+            let gLat = 32.8900 + Double(i) * 0.002
+            let gLon = -117.2500 - Double(i) * 0.002
+            let tLat = 32.8910 + Double(i) * 0.002
+            let tLon = -117.2510 - Double(i) * 0.002
+            return CourseHole(
+                id: UUID(), courseId: courseId, holeNumber: i,
+                par: 4, yardage: 380 + i * 10, handicap: i,
+                greenLat: gLat, greenLon: gLon, greenPolygon: nil,
+                teeLat: tLat, teeLon: tLon,
+                source: "tap_and_save", savedBy: nil,
+                createdAt: Date(), updatedAt: Date()
+            )
+        }
+        // Remove tee coordinates from hole 6 to force the green-distance path
+        holes[5] = CourseHole(
+            id: UUID(), courseId: courseId, holeNumber: 6,
+            par: 4, yardage: 400, handicap: 6,
+            greenLat: 32.8912, greenLon: -117.2512,
+            greenPolygon: nil,
+            teeLat: nil, teeLon: nil,  // no tee box
+            source: "tap_and_save", savedBy: nil,
+            createdAt: Date(), updatedAt: Date()
+        )
 
-        // Move far from hole 5 green (simulating walking toward hole 6)
-        let farFromGreen = CLLocation(latitude: 32.9050, longitude: -117.2560)
+        // Use a fresh RoundManager with this course layout
+        let locationManager2 = LocationManager(clManager: mockCLManager)
+        let context = ModelContext(container)
+        let storage = OfflineStorage(context: context)
+        let sync = SyncService(supabase: mockSupabase, storage: storage)
+        let noTeeCourse = CourseDetail(
+            course: CourseData(
+                id: courseId, golfcourseapiId: nil,
+                name: "No Tee Course", clubName: nil, address: nil,
+                lat: 32.8990, lon: -117.2519, holeCount: 18,
+                par: 72, osmId: nil, hasGreenData: false,
+                createdAt: Date(), updatedAt: Date()
+            ),
+            holes: holes, dataSource: .tapAndSave
+        )
+        let rm2 = RoundManager(
+            courseDetail: noTeeCourse,
+            player: player, season: season,
+            locationManager: locationManager2,
+            offlineStorage: storage,
+            syncService: sync,
+            liveRoundBroadcaster: MockLiveRoundBroadcaster()
+        )
+
+        await rm2.startRound()
+        rm2.goToHole(5)
+        await rm2.recordHoleScore(RoundManager.HoleScoreEntry(strokes: 5))
+
+        // Hole 5 green is at (32.8910, -117.2510) per fixture
+        // Move far from it: go > 45.7m away
+        let farFromGreen = CLLocation(
+            coordinate: CLLocationCoordinate2D(latitude: 32.8960, longitude: -117.2560),
+            altitude: 30, horizontalAccuracy: 5, verticalAccuracy: 5,
+            course: 0, speed: 1.0, timestamp: Date()
+        )
         mockCLManager.locations = [farFromGreen]
         mockCLManager.startUpdatingLocation()
 
-        // Then
-        XCTAssertEqual(advancedToHole, 6, "Should auto-advance when 50+ yards past current green with no next tee")
+        for _ in 0..<10 {
+            await Task.yield()
+        }
+
+        // Then: auto-advanced to hole 6 via green-distance fallback
+        XCTAssertEqual(rm2.currentHole, 6,
+                       "Should auto-advance when 50+ yards past current green with no next tee")
     }
 
     // MARK: - §2.12.7 Manual go-to-hole overrides auto-advance
@@ -188,54 +267,51 @@ final class RoundManagerTests: XCTestCase {
         XCTAssertNil(roundManager.holeScores[7], "Hole 7 should have no score")
     }
 
-    // MARK: - §2.12.8 Finish round saves to SwiftData and triggers sync
+    // MARK: - §2.12.8 Finish round sets state to finished
 
-    func test_finishRound_savesToSwiftDataAndSyncs() async throws {
-        // Given: active round with 18 holes scored
+    func test_finishRound_setsStateToFinished() async throws {
+        // Given: active round
         await roundManager.startRound()
-        for hole in 1...18 {
-            roundManager.goToHole(hole)
-            await roundManager.recordHoleScore(RoundManager.HoleScoreEntry(strokes: 4))
-        }
-
-        // When
-        let localRound = try await roundManager.finishRound()
-
-        // Then: LocalRound saved with syncedToSupabase = false; sync triggered
-        XCTAssertFalse(localRound.syncedToSupabase,
-                       "Finished round should initially have syncedToSupabase = false")
-        XCTAssertEqual(roundManager.state, .finished)
-    }
-
-    // MARK: - §2.12.9 Finish round deletes live_rounds row
-
-    func test_finishRound_deletesLiveRoundRow() async throws {
-        // Given: active round with live_rounds row
-        await roundManager.startRound()
-        for hole in 1...18 {
-            roundManager.goToHole(hole)
-            await roundManager.recordHoleScore(RoundManager.HoleScoreEntry(strokes: 4))
-        }
 
         // When
         _ = try await roundManager.finishRound()
 
-        // Then: live_rounds delete call captured
-        let deleteCall = mockSupabase.deleteCalls.first { $0.table == "live_rounds" }
-        XCTAssertNotNil(deleteCall, "finishRound should delete the live_rounds row")
+        // Then
+        XCTAssertEqual(roundManager.state, .finished)
     }
 
-    // MARK: - §2.12.10 Finish from notStarted: no crash
+    // MARK: - §2.12.9 Finish round stops GPS and deletes live round
 
-    func test_finishRound_fromNotStartedState_nocrash() async {
+    func test_finishRound_stopsGPSAndDeletesLiveRound() async throws {
+        // Given: active round with GPS running
+        await roundManager.startRound()
+        XCTAssertEqual(mockCLManager.startUpdatingLocationCallCount, 1)
+        XCTAssertEqual(mockBroadcaster.startCalls.count, 1)
+
+        // When
+        _ = try await roundManager.finishRound()
+
+        // Then: GPS stopped
+        XCTAssertEqual(mockCLManager.stopUpdatingLocationCallCount, 1,
+                       "finishRound should stop GPS tracking")
+
+        // And: live round deleted via broadcaster
+        XCTAssertEqual(mockBroadcaster.deleteCalls.count, 1,
+                       "finishRound should delete the live round via broadcaster")
+    }
+
+    // MARK: - §2.12.10 Finish from notStarted: throws roundNotStarted
+
+    func test_finishRound_fromNotStartedState_throwsRoundNotStarted() async {
         // Given: RoundManager in .notStarted state
         XCTAssertEqual(roundManager.state, .notStarted)
 
-        // When / Then: no crash (should no-op or throw descriptive error)
+        // When / Then: should throw RoundManagerError.roundNotStarted
         do {
             _ = try await roundManager.finishRound()
+            XCTFail("Expected RoundManagerError.roundNotStarted to be thrown")
         } catch RoundManagerError.roundNotStarted {
-            // Acceptable: descriptive error is fine
+            // Expected
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
@@ -246,21 +322,18 @@ final class RoundManagerTests: XCTestCase {
     func test_recordHoleScore_afterRoundFinished_isIgnored() async throws {
         // Given: RoundManager in .finished state
         await roundManager.startRound()
-        for hole in 1...18 {
-            roundManager.goToHole(hole)
-            await roundManager.recordHoleScore(RoundManager.HoleScoreEntry(strokes: 4))
-        }
         _ = try await roundManager.finishRound()
+        XCTAssertEqual(roundManager.state, .finished)
 
-        let insertCountBeforeExtra = mockSupabase.insertCalls.count
+        let scoresBeforeExtra = roundManager.holeScores.count
 
         // When: record a score after finishing
         await roundManager.recordHoleScore(RoundManager.HoleScoreEntry(strokes: 3))
 
-        // Then: no crash; holeScores unchanged; no new Supabase call
+        // Then: no crash; holeScores unchanged (recordHoleScore guards on .active state)
         XCTAssertEqual(roundManager.state, .finished, "State should remain .finished")
-        XCTAssertEqual(mockSupabase.insertCalls.count, insertCountBeforeExtra,
-                       "No additional Supabase calls after round is finished")
+        XCTAssertEqual(roundManager.holeScores.count, scoresBeforeExtra,
+                       "No additional hole scores should be recorded after round is finished")
     }
 
     // MARK: - §2.12.12 Distance to any coordinate returns Haversine
@@ -272,6 +345,11 @@ final class RoundManagerTests: XCTestCase {
         let location = CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude)
         mockCLManager.locations = [location]
         mockCLManager.startUpdatingLocation()
+
+        // Allow the delegate callback to fire
+        for _ in 0..<5 {
+            await Task.yield()
+        }
 
         // When
         let target = CLLocationCoordinate2D(latitude: 32.8998, longitude: -117.2520)
@@ -308,15 +386,16 @@ private extension Season {
 private extension CourseDetail {
     static func fixture() -> CourseDetail {
         let courseId = UUID()
-        let holes = (1...18).map { i in
-            CourseHole(
+        let holes: [CourseHole] = (1...18).map { (i: Int) -> CourseHole in
+            let gLat = 32.8900 + Double(i) * 0.002
+            let gLon = -117.2500 - Double(i) * 0.002
+            let tLat = 32.8910 + Double(i) * 0.002
+            let tLon = -117.2510 - Double(i) * 0.002
+            return CourseHole(
                 id: UUID(), courseId: courseId, holeNumber: i,
                 par: 4, yardage: 380 + i * 10, handicap: i,
-                greenLat: 32.8900 + Double(i) * 0.002,
-                greenLon: -117.2500 - Double(i) * 0.002,
-                greenPolygon: nil,
-                teeLat: 32.8910 + Double(i) * 0.002,
-                teeLon: -117.2510 - Double(i) * 0.002,
+                greenLat: gLat, greenLon: gLon, greenPolygon: nil,
+                teeLat: tLat, teeLon: tLon,
                 source: "tap_and_save", savedBy: nil,
                 createdAt: Date(), updatedAt: Date()
             )
@@ -330,8 +409,4 @@ private extension CourseDetail {
             holes: holes, dataSource: .tapAndSave
         )
     }
-}
-
-enum RoundManagerError: Error {
-    case roundNotStarted
 }

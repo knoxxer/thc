@@ -8,15 +8,9 @@
 import Foundation
 @testable import THC
 
-// MARK: - Protocol
-
-protocol URLSessionProtocol {
-    func data(for request: URLRequest) async throws -> (Data, URLResponse)
-}
-
 // MARK: - Mock
 
-final class MockURLSession: URLSessionProtocol {
+final class MockURLSession: URLSessionDataProviding, @unchecked Sendable {
 
     // MARK: - Stubs
 

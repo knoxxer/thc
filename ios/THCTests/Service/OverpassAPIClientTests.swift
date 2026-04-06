@@ -17,7 +17,7 @@ final class OverpassAPIClientTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         mockURLSession = MockURLSession()
-        client = OverpassAPIClient(urlSession: mockURLSession)
+        client = OverpassAPIClient(session: mockURLSession)
     }
 
     override func tearDown() async throws {
@@ -82,8 +82,8 @@ final class OverpassAPIClientTests: XCTestCase {
         // When / Then
         do {
             _ = try await client.fetchGolfFeatures(lat: 0, lon: 0, radiusMeters: 500)
-            XCTFail("Expected OverpassAPIError.parseFailed to be thrown")
-        } catch OverpassAPIError.parseFailed {
+            XCTFail("Expected OverpassAPIError.parseError to be thrown")
+        } catch OverpassAPIError.parseError {
             // Expected
         } catch {
             XCTFail("Unexpected error type: \(error)")
@@ -234,7 +234,7 @@ final class OverpassAPIClientTests: XCTestCase {
             // If it doesn't throw, the malformed polygon should be skipped
             XCTAssertTrue(osmData.greens.isEmpty,
                           "Malformed polygon (< 3 points) should be skipped, not included")
-        } catch OverpassAPIError.invalidPolygon {
+        } catch OverpassAPIError.malformedPolygon {
             // Throwing is also acceptable
         } catch {
             XCTFail("Unexpected error: \(error)")

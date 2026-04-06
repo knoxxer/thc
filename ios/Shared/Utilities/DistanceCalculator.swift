@@ -208,6 +208,25 @@ public enum DistanceCalculator {
         return CLLocationCoordinate2D(latitude: lat, longitude: lon)
     }
 
+    // MARK: - Dogleg Distance
+
+    /// Distance from the user's current position to the nearest bend point
+    /// in a hole way polyline. If no bend is found, returns 0.
+    public static func doglegDistance(
+        wayPoints: [CLLocationCoordinate2D],
+        userPosition: CLLocationCoordinate2D
+    ) -> Double {
+        // A "bend" is any interior point of the polyline (not first or last).
+        // Return the distance to the nearest interior point.
+        guard wayPoints.count >= 3 else { return 0 }
+        let interiorPoints = wayPoints.dropFirst().dropLast()
+        guard let nearest = interiorPoints.min(by: {
+            distanceInYards(from: userPosition, to: $0) <
+            distanceInYards(from: userPosition, to: $1)
+        }) else { return 0 }
+        return distanceInYards(from: userPosition, to: nearest)
+    }
+
     // MARK: - Private Helpers
 
     private static func isValid(_ coord: CLLocationCoordinate2D) -> Bool {

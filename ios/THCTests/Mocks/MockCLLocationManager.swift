@@ -13,25 +13,11 @@
 import CoreLocation
 @testable import THC
 
-// MARK: - Protocol (must be satisfied by both this mock and the real CLLocationManager)
-
-protocol CLLocationManagerProtocol: AnyObject {
-    var delegate: CLLocationManagerDelegate? { get set }
-    var desiredAccuracy: CLLocationAccuracy { get set }
-    var distanceFilter: CLLocationDistance { get set }
-    var allowsBackgroundLocationUpdates: Bool { get set }
-    var activityType: CLActivityType { get set }
-    var authorizationStatus: CLAuthorizationStatus { get }
-
-    func startUpdatingLocation()
-    func stopUpdatingLocation()
-    func requestAlwaysAuthorization()
-    func requestWhenInUseAuthorization()
-}
-
 // MARK: - Mock
+// Conforms to CLLocationManaging (defined in LocationManager.swift) so it can
+// be injected via LocationManager(clManager:).
 
-final class MockCLLocationManager: NSObject, CLLocationManagerProtocol {
+final class MockCLLocationManager: NSObject, CLLocationManaging {
 
     // MARK: - Configuration
 
@@ -51,9 +37,11 @@ final class MockCLLocationManager: NSObject, CLLocationManagerProtocol {
     var lastSetDistanceFilter: CLLocationDistance = kCLDistanceFilterNone
     var lastSetBackgroundUpdates: Bool = false
 
-    // MARK: - CLLocationManagerProtocol
+    // MARK: - CLLocationManaging
 
-    weak var delegate: CLLocationManagerDelegate?
+    weak var delegate: (any CLLocationManagerDelegate)?
+
+    var pausesLocationUpdatesAutomatically: Bool = true
 
     var desiredAccuracy: CLLocationAccuracy = kCLLocationAccuracyBest {
         didSet { lastSetAccuracy = desiredAccuracy }

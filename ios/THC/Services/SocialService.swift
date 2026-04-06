@@ -71,6 +71,9 @@ final class SocialService: SocialServiceProviding, @unchecked Sendable {
 
                 continuation.yield(initial)
 
+                // Unsubscribe old channel before creating a new one (Fix #7).
+                self.realtimeChannel?.unsubscribe()
+
                 // Subscribe to all changes on live_rounds via Supabase Realtime.
                 let channel = self.supabase.client.realtime.channel("public:live_rounds")
                 self.realtimeChannel = channel
@@ -148,6 +151,81 @@ final class SocialService: SocialServiceProviding, @unchecked Sendable {
     func disconnectLiveFeed() {
         realtimeChannel?.unsubscribe()
         realtimeChannel = nil
+    }
+}
+
+// MARK: - LiveRoundBroadcasting Conformance (Fix #11)
+
+extension SocialService: LiveRoundBroadcasting {
+    func startLiveRound(
+        id: UUID, playerId: UUID, courseName: String,
+        courseDataId: UUID?, currentHole: Int, thruHole: Int, currentScore: Int
+    ) async throws {
+        let payload = LiveRoundInsertPayload(
+            id: id.uuidString.lowercased(),
+            playerId: playerId.uuidString.lowercased(),
+            courseName: courseName,
+            courseDataId: courseDataId?.uuidString.lowercased(),
+            currentHole: currentHole,
+            thruHole: thruHole,
+            currentScore: currentScore
+        )
+        try await supabase.client.from("live_rounds").insert(payload).execute()
+    }
+
+    func updateLiveRound(
+        id: UUID, currentHole: Int, thruHole: Int, currentScore: Int
+    ) async throws {
+        let update = LiveRoundUpdatePayload(
+            currentHole: currentHole,
+            thruHole: thruHole,
+            currentScore: currentScore
+        )
+        try await supabase.client
+            .from("live_rounds")
+            .update(update)
+            .eq("id", value: id.uuidString.lowercased())
+            .execute()
+    }
+
+    func deleteLiveRound(id: UUID) async throws {
+        try await supabase.client
+            .from("live_rounds")
+            .delete()
+            .eq("id", value: id.uuidString.lowercased())
+            .execute()
+    }
+}
+
+// MARK: - Live Round Payloads
+
+private struct LiveRoundInsertPayload: Encodable {
+    let id: String
+    let playerId: String
+    let courseName: String
+    let courseDataId: String?
+    let currentHole: Int
+    let thruHole: Int
+    let currentScore: Int
+    enum CodingKeys: String, CodingKey {
+        case id
+        case playerId = "player_id"
+        case courseName = "course_name"
+        case courseDataId = "course_data_id"
+        case currentHole = "current_hole"
+        case thruHole = "thru_hole"
+        case currentScore = "current_score"
+    }
+}
+
+private struct LiveRoundUpdatePayload: Encodable {
+    let currentHole: Int
+    let thruHole: Int
+    let currentScore: Int
+    enum CodingKeys: String, CodingKey {
+        case currentHole = "current_hole"
+        case thruHole = "thru_hole"
+        case currentScore = "current_score"
     }
 }
 

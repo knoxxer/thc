@@ -43,7 +43,7 @@
          URL Schemes — OAuth redirect
          Required by M3.3 (Supabase OAuth callback)
          The redirect URI registered in Supabase must match exactly:
-           com.thc.app://login-callback
+           com.thc.app://auth/callback
          ============================================================ -->
     <key>CFBundleURLTypes</key>
     <array>

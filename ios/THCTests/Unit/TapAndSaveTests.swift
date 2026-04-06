@@ -7,6 +7,7 @@
 import XCTest
 import SwiftData
 import CoreLocation
+import Shared
 @testable import THC
 
 final class TapAndSaveTests: XCTestCase {
@@ -57,8 +58,8 @@ final class TapAndSaveTests: XCTestCase {
         if let payload = upsert.payload as? [String: Any] {
             XCTAssertEqual(payload["hole_number"] as? Int, holeNumber)
             XCTAssertEqual(payload["source"] as? String, "tap_and_save")
-            XCTAssertEqual(payload["green_lat"] as? Double, coordinate.latitude, accuracy: 0.0001)
-            XCTAssertEqual(payload["green_lon"] as? Double, coordinate.longitude, accuracy: 0.0001)
+            XCTAssertEqual(payload["green_lat"] as? Double ?? 0, coordinate.latitude, accuracy: 0.0001)
+            XCTAssertEqual(payload["green_lon"] as? Double ?? 0, coordinate.longitude, accuracy: 0.0001)
         }
     }
 

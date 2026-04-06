@@ -77,6 +77,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.thc.tests
+        GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/THC.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/THC"
         BUNDLE_LOADER: "$(TEST_HOST)"
 

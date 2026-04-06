@@ -3,13 +3,14 @@
 //
 // Factory for in-memory SwiftData ModelContainers used in tests.
 // Each test should call TestModelContainer.create() in setUp() to get
-// a fresh, isolated container — no cross-test state leakage.
+// a fresh, isolated container -- no cross-test state leakage.
 //
 // Usage:
 //   let container = try TestModelContainer.create()
 //   let context = ModelContext(container)
-//   let storage = OfflineStorage(modelContext: context)
+//   let storage = OfflineStorage(context: context)
 
+import Foundation
 import SwiftData
 @testable import THC
 
@@ -34,19 +35,21 @@ enum TestModelContainer {
         let context = ModelContext(container)
 
         for i in 0..<count {
-            let round = LocalRound()
-            round.id = UUID()
-            round.playerId = UUID()
-            round.seasonId = UUID()
-            round.playedAt = "2026-0\(i + 1)-15"
-            round.courseName = "Test Course \(i)"
-            round.par = 72
-            round.grossScore = 90 + i
-            round.courseHandicap = 18
-            round.points = 10
-            round.source = "app"
-            round.syncedToSupabase = false
-            round.createdAt = Date()
+            let round = LocalRound(
+                id: UUID(),
+                playerId: UUID(),
+                seasonId: UUID(),
+                playedAt: "2026-0\(i + 1)-15",
+                courseName: "Test Course \(i)",
+                par: 72,
+                grossScore: 90 + i,
+                courseHandicap: 18,
+                points: 10,
+                source: "app",
+                syncedToSupabase: false,
+                holeScores: [],
+                createdAt: Date()
+            )
             context.insert(round)
         }
 
@@ -61,36 +64,40 @@ enum TestModelContainer {
 
         // 2 unsynced
         for _ in 0..<2 {
-            let round = LocalRound()
-            round.id = UUID()
-            round.playerId = UUID()
-            round.seasonId = UUID()
-            round.playedAt = "2026-01-15"
-            round.courseName = "Test Course"
-            round.par = 72
-            round.grossScore = 90
-            round.courseHandicap = 18
-            round.points = 10
-            round.source = "app"
-            round.syncedToSupabase = false
-            round.createdAt = Date()
+            let round = LocalRound(
+                id: UUID(),
+                playerId: UUID(),
+                seasonId: UUID(),
+                playedAt: "2026-01-15",
+                courseName: "Test Course",
+                par: 72,
+                grossScore: 90,
+                courseHandicap: 18,
+                points: 10,
+                source: "app",
+                syncedToSupabase: false,
+                holeScores: [],
+                createdAt: Date()
+            )
             context.insert(round)
         }
 
         // 1 synced
-        let synced = LocalRound()
-        synced.id = UUID()
-        synced.playerId = UUID()
-        synced.seasonId = UUID()
-        synced.playedAt = "2026-01-10"
-        synced.courseName = "Other Course"
-        synced.par = 72
-        synced.grossScore = 85
-        synced.courseHandicap = 15
-        synced.points = 12
-        synced.source = "app"
-        synced.syncedToSupabase = true
-        synced.createdAt = Date()
+        let synced = LocalRound(
+            id: UUID(),
+            playerId: UUID(),
+            seasonId: UUID(),
+            playedAt: "2026-01-10",
+            courseName: "Other Course",
+            par: 72,
+            grossScore: 85,
+            courseHandicap: 15,
+            points: 12,
+            source: "app",
+            syncedToSupabase: true,
+            holeScores: [],
+            createdAt: Date()
+        )
         context.insert(synced)
 
         try context.save()

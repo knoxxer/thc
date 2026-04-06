@@ -6,6 +6,7 @@
 
 import XCTest
 import CoreLocation
+import Shared
 @testable import THC
 
 final class DistanceCalculatorTests: XCTestCase {

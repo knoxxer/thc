@@ -6,26 +6,38 @@
 
 import XCTest
 import BackgroundTasks
+import SwiftData
+import Shared
 @testable import THC
 
 final class BackgroundRefreshTests: XCTestCase {
 
     var mockScheduler: MockBGTaskScheduler!
     var mockSupabase: MockSupabaseClient!
+    var mockStorage: MockOfflineStorage!
+    var syncService: SyncService!
+    var mockCourseDataService: MockCourseDataServiceSimple!
     var backgroundRefreshService: BackgroundRefreshService!
 
     override func setUp() async throws {
         try await super.setUp()
         mockScheduler = MockBGTaskScheduler()
         mockSupabase = MockSupabaseClient()
+        mockStorage = MockOfflineStorage()
+        syncService = SyncService(supabase: mockSupabase, storage: mockStorage)
+        mockCourseDataService = MockCourseDataServiceSimple()
         backgroundRefreshService = BackgroundRefreshService(
             scheduler: mockScheduler,
-            supabase: mockSupabase
+            syncService: syncService,
+            courseDataService: mockCourseDataService
         )
     }
 
     override func tearDown() async throws {
         backgroundRefreshService = nil
+        mockCourseDataService = nil
+        syncService = nil
+        mockStorage = nil
         mockSupabase = nil
         mockScheduler = nil
         try await super.tearDown()
@@ -39,70 +51,54 @@ final class BackgroundRefreshTests: XCTestCase {
 
         // Then: the task identifier is registered
         XCTAssertTrue(
-            mockScheduler.registeredIdentifiers.contains("com.thc.app.standings-refresh") ||
-            mockScheduler.registeredIdentifiers.contains("com.thc.app.background-refresh"),
+            mockScheduler.registeredIdentifiers.contains("com.thc.app.refresh"),
             "Background refresh task should be registered with BGTaskScheduler"
         )
     }
 
-    // MARK: - M14.1 — Background refresh fetches standings and course data
+    // MARK: - M14.1 — Background refresh schedules next refresh
 
-    func test_backgroundRefresh_fetchesStandingsAndCourseData() async throws {
-        // Given: service configured
-        let standingsBefore = mockSupabase.insertCalls.count
+    func test_backgroundRefresh_schedulesNextRefresh() {
+        // When: schedule is called
+        backgroundRefreshService.scheduleAppRefresh()
 
-        // When: trigger the background refresh handler
-        await backgroundRefreshService.performBackgroundRefresh()
-
-        // Then: standings + course data fetches were made
-        let standingsFetchCalls = mockSupabase.capturedSelectCalls.filter {
-            $0 == "season_standings" || $0 == "rounds"
-        }
-        XCTAssertFalse(standingsFetchCalls.isEmpty,
-                       "Background refresh should fetch standings data")
+        // Then: a task request was submitted to the scheduler
+        XCTAssertFalse(mockScheduler.submittedRequests.isEmpty,
+                       "scheduleAppRefresh should submit a task request")
     }
 }
 
 // MARK: - MockBGTaskScheduler
 
-protocol BGTaskSchedulerProviding {
-    func register(forTaskWithIdentifier identifier: String,
-                  using queue: DispatchQueue?,
-                  launchHandler: @escaping (Any) -> Void)
-    func submit(_ taskRequest: Any) throws
-}
-
-final class MockBGTaskScheduler: BGTaskSchedulerProviding {
+final class MockBGTaskScheduler: BGTaskSchedulerProviding, @unchecked Sendable {
 
     var registeredIdentifiers: [String] = []
-    var submittedRequests: [Any] = []
-    var launchHandlers: [String: (Any) -> Void] = [:]
+    var submittedRequests: [BGTaskRequest] = []
+    var launchHandlers: [String: (BGTask) -> Void] = [:]
 
+    @discardableResult
     func register(
         forTaskWithIdentifier identifier: String,
         using queue: DispatchQueue?,
-        launchHandler: @escaping (Any) -> Void
-    ) {
+        launchHandler: @escaping (BGTask) -> Void
+    ) -> Bool {
         registeredIdentifiers.append(identifier)
         launchHandlers[identifier] = launchHandler
+        return true
     }
 
-    func submit(_ taskRequest: Any) throws {
+    func submit(_ taskRequest: BGTaskRequest) throws {
         submittedRequests.append(taskRequest)
-    }
-
-    /// Simulate the system launching a background task.
-    func triggerTask(identifier: String, with task: Any) {
-        launchHandlers[identifier]?(task)
     }
 }
 
-// MARK: - MockSupabaseClient extension for select tracking
+// MARK: - Simple CourseDataService mock for BackgroundRefreshTests
 
-extension MockSupabaseClient {
-    var capturedSelectCalls: [String] {
-        // In real implementation, track which table selects were made
-        // For now return empty — implementation will populate this
-        return []
-    }
+final class MockCourseDataServiceSimple: CourseDataServiceProviding, @unchecked Sendable {
+    func searchCourses(query: String) async throws -> [CourseSearchResult] { [] }
+    func getCourseDetail(courseId: UUID) async throws -> CourseDetail? { nil }
+    func nearbyCourses(lat: Double, lon: Double, radiusKm: Double) async throws -> [CourseData] { [] }
+    func saveGreenPin(courseId: UUID, holeNumber: Int, greenLat: Double, greenLon: Double, savedBy: UUID) async throws {}
+    func prefetchNearbyCourses(lat: Double, lon: Double, radiusKm: Double) async {}
+    func getOrCreateCourse(from result: CourseSearchResult) async throws -> UUID { UUID() }
 }

@@ -7,7 +7,7 @@ struct QuickScoreView: View {
     let holeNumber: Int
     let par: Int
 
-    @EnvironmentObject private var connectivityService: PhoneConnectivityService
+    @Environment(PhoneConnectivityService.self) private var connectivityService
     @Environment(\.dismiss) private var dismiss
 
     /// Crown binding uses Double; display rounds to nearest Int.
@@ -187,6 +187,6 @@ struct QuickScoreView: View {
 #Preview {
     NavigationStack {
         QuickScoreView(holeNumber: 7, par: 4)
-            .environmentObject(PhoneConnectivityService())
+            .environment(PhoneConnectivityService())
     }
 }

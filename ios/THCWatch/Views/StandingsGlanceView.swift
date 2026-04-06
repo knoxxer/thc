@@ -4,7 +4,7 @@ import Shared
 /// Top 5 leaderboard glance for Apple Watch.
 /// Displays player name and points from the latest standings pushed from the phone.
 struct StandingsGlanceView: View {
-    @EnvironmentObject private var connectivityService: PhoneConnectivityService
+    @Environment(PhoneConnectivityService.self) private var connectivityService
 
     private var topStandings: [SeasonStanding] {
         Array(connectivityService.standings.prefix(5))
@@ -132,6 +132,6 @@ struct StandingsGlanceView: View {
     // Inject mock data via published property for preview
     NavigationStack {
         StandingsGlanceView()
-            .environmentObject(service)
+            .environment(service)
     }
 }

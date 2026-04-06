@@ -2,6 +2,24 @@ import Foundation
 import CoreLocation
 import Observation
 
+// MARK: - CLLocationManager Protocol (Fix #3: testability)
+
+/// Protocol abstracting CLLocationManager so tests can inject a mock.
+protocol CLLocationManaging: AnyObject {
+    var delegate: (any CLLocationManagerDelegate)? { get set }
+    var activityType: CLActivityType { get set }
+    var desiredAccuracy: CLLocationAccuracy { get set }
+    var distanceFilter: CLLocationDistance { get set }
+    var allowsBackgroundLocationUpdates: Bool { get set }
+    var pausesLocationUpdatesAutomatically: Bool { get set }
+    var authorizationStatus: CLAuthorizationStatus { get }
+    func requestAlwaysAuthorization()
+    func startUpdatingLocation()
+    func stopUpdatingLocation()
+}
+
+extension CLLocationManager: CLLocationManaging {}
+
 /// CoreLocation wrapper with battery optimization for active rounds.
 ///
 /// Battery optimization strategy:
@@ -24,31 +42,46 @@ final class LocationManager: NSObject, CLLocationManagerDelegate, @unchecked Sen
 
     // MARK: - AsyncStream
 
+    /// Each continuation is tracked by a unique ID so termination only removes
+    /// the specific stream that ended (Fix #6).
     var locationUpdates: AsyncStream<CLLocation> {
         AsyncStream { [weak self] continuation in
-            self?.locationContinuations.append(continuation)
+            guard let self else {
+                continuation.finish()
+                return
+            }
+            let id = UUID()
+            self.continuationQueue.sync {
+                self.locationContinuations[id] = continuation
+            }
             continuation.onTermination = { [weak self] _ in
-                self?.locationContinuations.removeAll(where: { _ in true })
+                self?.continuationQueue.sync {
+                    _ = self?.locationContinuations.removeValue(forKey: id)
+                }
             }
         }
     }
 
     // MARK: - Private
 
-    private let clManager: CLLocationManager
-    private var locationContinuations: [AsyncStream<CLLocation>.Continuation] = []
+    private let clManager: CLLocationManaging
+    /// Keyed by a unique ID so individual terminations don't remove other continuations (Fix #6).
+    private var locationContinuations: [UUID: AsyncStream<CLLocation>.Continuation] = [:]
+    /// Serializes access to `locationContinuations` (Fix #6).
+    private let continuationQueue = DispatchQueue(label: "com.thc.locationContinuations")
 
     // Speed threshold: 0.9 m/s ≈ 2 mph
     private let movingSpeedThreshold: Double = 0.9
 
     // MARK: - Init
 
-    override init() {
-        clManager = CLLocationManager()
+    /// Pass a mock `CLLocationManaging` for testing, or use the default `CLLocationManager`.
+    init(clManager: CLLocationManaging = CLLocationManager()) {
+        self.clManager = clManager
         super.init()
-        clManager.delegate = self
-        clManager.activityType = .fitness
-        authorizationStatus = clManager.authorizationStatus
+        self.clManager.delegate = self
+        self.clManager.activityType = .fitness
+        authorizationStatus = self.clManager.authorizationStatus
     }
 
     // MARK: - Tracking Control
@@ -94,8 +127,12 @@ final class LocationManager: NSObject, CLLocationManagerDelegate, @unchecked Sen
         // Battery optimization: throttle when stationary
         adjustAccuracy(for: location)
 
-        // Notify all subscribers
-        for continuation in locationContinuations {
+        // Persist for background refresh (Fix #10)
+        LocationCache.save(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
+
+        // Notify all subscribers (synchronized, Fix #6)
+        let continuations = continuationQueue.sync { Array(locationContinuations.values) }
+        for continuation in continuations {
             continuation.yield(location)
         }
     }

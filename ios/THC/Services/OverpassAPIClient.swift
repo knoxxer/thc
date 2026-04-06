@@ -70,13 +70,20 @@ enum OverpassAPIError: LocalizedError {
 
 // MARK: - Implementation
 
+/// Protocol abstracting URLSession for testability.
+protocol URLSessionDataProviding: Sendable {
+    func data(for request: URLRequest) async throws -> (Data, URLResponse)
+}
+
+extension URLSession: URLSessionDataProviding {}
+
 final class OverpassAPIClient: OverpassAPIProviding, @unchecked Sendable {
     private static let endpoint = "https://overpass-api.de/api/interpreter"
 
-    private let session: URLSession
+    private let session: URLSessionDataProviding
 
     /// Injectable URLSession for testing — defaults to the shared session.
-    init(session: URLSession = .shared) {
+    init(session: URLSessionDataProviding = URLSession.shared) {
         self.session = session
     }
 
@@ -88,6 +95,12 @@ final class OverpassAPIClient: OverpassAPIProviding, @unchecked Sendable {
     }
 
     func fetchCourseByOSMId(_ osmId: String) async throws -> OSMGolfData? {
+        // Fix #16: Validate osmId to prevent Overpass QL injection.
+        let osmIdPattern = /^[0-9]+$/
+        guard osmId.wholeMatch(of: osmIdPattern) != nil else {
+            throw OverpassAPIError.parseError("Invalid OSM ID: must be numeric")
+        }
+
         let query = buildOSMIdQuery(osmId: osmId)
         let result = try await executeQuery(query)
         let isEmpty = result.greens.isEmpty

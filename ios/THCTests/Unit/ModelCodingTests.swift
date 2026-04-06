@@ -5,6 +5,7 @@
 // Tests compile but fail (red) until models are implemented (M2.2, M2.3).
 
 import XCTest
+import Shared
 @testable import THC
 
 final class ModelCodingTests: XCTestCase {
@@ -50,7 +51,7 @@ final class ModelCodingTests: XCTestCase {
         XCTAssertEqual(player.displayName, "Patrick")
         XCTAssertEqual(player.slug, "patrick-sun")
         XCTAssertEqual(player.ghinNumber, "1234567")
-        XCTAssertEqual(player.handicapIndex, 12.4, accuracy: 0.001)
+        XCTAssertEqual(player.handicapIndex ?? 0, 12.4, accuracy: 0.001)
         XCTAssertNotNil(player.handicapUpdatedAt, "handicap_updated_at should decode to a Date")
         XCTAssertEqual(player.role, "contributor")
         XCTAssertTrue(player.isActive)

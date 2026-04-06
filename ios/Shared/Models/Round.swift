@@ -24,4 +24,20 @@ public struct Round: Codable, Identifiable, Sendable {
     public let source: String
     public let enteredBy: String?
     public let createdAt: Date
+
+    public init(
+        id: UUID, playerId: UUID, seasonId: UUID, playedAt: String,
+        courseName: String, teeName: String?, courseRating: Double?,
+        slopeRating: Double?, par: Int, grossScore: Int, courseHandicap: Int,
+        netScore: Int, netVsPar: Int, points: Int?, ghinScoreId: String?,
+        source: String, enteredBy: String?, createdAt: Date
+    ) {
+        self.id = id; self.playerId = playerId; self.seasonId = seasonId
+        self.playedAt = playedAt; self.courseName = courseName; self.teeName = teeName
+        self.courseRating = courseRating; self.slopeRating = slopeRating; self.par = par
+        self.grossScore = grossScore; self.courseHandicap = courseHandicap
+        self.netScore = netScore; self.netVsPar = netVsPar; self.points = points
+        self.ghinScoreId = ghinScoreId; self.source = source; self.enteredBy = enteredBy
+        self.createdAt = createdAt
+    }
 }

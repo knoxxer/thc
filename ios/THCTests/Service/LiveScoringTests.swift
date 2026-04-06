@@ -6,22 +6,24 @@
 
 import XCTest
 import SwiftData
+import Shared
 @testable import THC
 
 final class LiveScoringTests: XCTestCase {
 
-    var mockSupabase: MockSupabaseClient!
+    var mockSupabase: StubSupabaseClient!
     var container: ModelContainer!
     var roundManager: RoundManager!
 
     override func setUp() async throws {
         try await super.setUp()
-        mockSupabase = MockSupabaseClient()
+        mockSupabase = StubSupabaseClient()
         container = try TestModelContainer.create()
 
         let locationManager = LocationManager(clManager: MockCLLocationManager())
-        let offlineStorage = OfflineStorage(modelContainer: container)
-        let syncService = SyncService(supabase: mockSupabase, offlineStorage: offlineStorage)
+        let context = ModelContext(container)
+        let offlineStorage = OfflineStorage(context: context)
+        let syncService = SyncService(supabase: mockSupabase, storage: offlineStorage)
 
         roundManager = RoundManager(
             courseDetail: CourseDetail.fixture(),
@@ -29,7 +31,8 @@ final class LiveScoringTests: XCTestCase {
             season: Season.fixture(),
             locationManager: locationManager,
             offlineStorage: offlineStorage,
-            syncService: syncService
+            syncService: syncService,
+            liveRoundBroadcaster: MockLiveRoundBroadcaster()
         )
 
         await roundManager.startRound()
@@ -42,31 +45,9 @@ final class LiveScoringTests: XCTestCase {
         try await super.tearDown()
     }
 
-    // MARK: - §M9.1 — auto-advance triggers at correct proximity
+    // MARK: - Score persists to holeScores
 
-    func test_autoAdvanceTriggers_atCorrectProximity() {
-        // Given: user moves to within 30m of next hole tee
-        // This is tested more thoroughly in RoundManagerTests
-        // Here we verify the live scoring path triggers it correctly
-        roundManager.goToHole(1)
-
-        var holeAdvanced = false
-        roundManager.onHoleAdvanced = { _ in holeAdvanced = true }
-
-        // Simulate movement to hole 2 tee proximity
-        let hole2Tee = roundManager.courseDetail?.holes[1]
-        if let lat = hole2Tee?.teeLat, let lon = hole2Tee?.teeLon {
-            let location = CLLocation(latitude: lat, longitude: lon)
-            // Trigger location update
-            roundManager.handleLocationUpdate(location)
-        }
-
-        XCTAssertTrue(holeAdvanced, "Auto-advance should trigger at correct proximity to next tee")
-    }
-
-    // MARK: - Score persists to SwiftData
-
-    func test_scoreRecorded_persistsToSwiftData() async throws {
+    func test_scoreRecorded_persistsToHoleScores() async throws {
         // Given: active round
         roundManager.goToHole(3)
 
@@ -117,7 +98,7 @@ final class LiveScoringTests: XCTestCase {
         await roundManager.recordHoleScore(entry)
 
         // Then: all optional stats saved
-        let score = roundManager.holeScores[roundManager.currentHole]
+        let score = roundManager.holeScores[1]
         XCTAssertEqual(score?.putts, 2, "Putts should be saved")
         XCTAssertEqual(score?.fairwayHit, "hit", "FIR should be saved")
         XCTAssertEqual(score?.greenInRegulation, true, "GIR should be saved")
@@ -138,7 +119,7 @@ final class LiveScoringTests: XCTestCase {
         await roundManager.recordHoleScore(entry)
 
         // Then: optional fields are nil
-        let score = roundManager.holeScores[roundManager.currentHole]
+        let score = roundManager.holeScores[1]
         XCTAssertNil(score?.putts, "Putts should be nil when not provided")
         XCTAssertNil(score?.fairwayHit, "FIR should be nil when not provided")
         XCTAssertNil(score?.greenInRegulation, "GIR should be nil when not provided")
@@ -166,16 +147,20 @@ private extension Season {
 private extension CourseDetail {
     static func fixture() -> CourseDetail {
         let courseId = UUID()
-        let holes = (1...18).map { i in
-            CourseHole(id: UUID(), courseId: courseId, holeNumber: i,
-                       par: 4, yardage: 380, handicap: i,
-                       greenLat: 32.8900 + Double(i) * 0.002,
-                       greenLon: -117.2500 - Double(i) * 0.002,
-                       greenPolygon: nil,
-                       teeLat: 32.8910 + Double(i) * 0.002,
-                       teeLon: -117.2510 - Double(i) * 0.002,
-                       source: "tap_and_save", savedBy: nil,
-                       createdAt: Date(), updatedAt: Date())
+        let holes: [CourseHole] = (1...18).map { i in
+            let greenLat = 32.8900 + Double(i) * 0.002
+            let greenLon = -117.2500 - Double(i) * 0.002
+            let teeLat = 32.8910 + Double(i) * 0.002
+            let teeLon = -117.2510 - Double(i) * 0.002
+            return CourseHole(
+                id: UUID(), courseId: courseId, holeNumber: i,
+                par: 4, yardage: 380, handicap: i,
+                greenLat: greenLat, greenLon: greenLon,
+                greenPolygon: nil,
+                teeLat: teeLat, teeLon: teeLon,
+                source: "tap_and_save", savedBy: nil,
+                createdAt: Date(), updatedAt: Date()
+            )
         }
         return CourseDetail(
             course: CourseData(id: courseId, golfcourseapiId: nil, name: "Test",

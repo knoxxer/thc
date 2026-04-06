@@ -12,4 +12,13 @@ public struct HoleScore: Codable, Identifiable, Sendable {
     public let fairwayHit: String?
     public let greenInRegulation: Bool?
     public let createdAt: Date
+
+    public init(
+        id: UUID, roundId: UUID, holeNumber: Int, strokes: Int,
+        putts: Int?, fairwayHit: String?, greenInRegulation: Bool?, createdAt: Date
+    ) {
+        self.id = id; self.roundId = roundId; self.holeNumber = holeNumber
+        self.strokes = strokes; self.putts = putts; self.fairwayHit = fairwayHit
+        self.greenInRegulation = greenInRegulation; self.createdAt = createdAt
+    }
 }

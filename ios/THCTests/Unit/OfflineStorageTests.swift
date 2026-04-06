@@ -1,12 +1,13 @@
 // OfflineStorageTests.swift
 // THCTests/Unit
 //
-// All specs from §2.11 — SwiftData persistence.
+// All specs from §2.11 -- SwiftData persistence.
 // Uses in-memory ModelContainer for test isolation (§3.5).
 // Tests compile but fail (red) until OfflineStorage is implemented (M2.6).
 
 import XCTest
 import SwiftData
+import Shared
 @testable import THC
 
 final class OfflineStorageTests: XCTestCase {
@@ -17,7 +18,8 @@ final class OfflineStorageTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         container = try TestModelContainer.create()
-        storage = OfflineStorage(modelContainer: container)
+        let context = ModelContext(container)
+        storage = OfflineStorage(context: context)
     }
 
     override func tearDown() async throws {
@@ -44,7 +46,7 @@ final class OfflineStorageTests: XCTestCase {
     // MARK: - §2.11.2 Unsynced rounds returns only pending
 
     func test_unsyncedRounds_returnsOnlyPending() throws {
-        // Given: 3 rounds — 2 unsynced, 1 synced
+        // Given: 3 rounds -- 2 unsynced, 1 synced
         let unsynced1 = makeLocalRound(synced: false)
         let unsynced2 = makeLocalRound(synced: false)
         let synced = makeLocalRound(synced: true)
@@ -110,15 +112,6 @@ final class OfflineStorageTests: XCTestCase {
     // MARK: - §2.11.6 Schema migration v1 to v2 preserves local rounds
 
     func test_swiftDataMigration_v1ToV2_preservesLocalRounds() throws {
-        // NOTE: This test verifies the migration design contract.
-        // Full migration testing requires a v1 on-disk store, which
-        // is set up differently from in-memory. This test validates
-        // that the migration plan does not lose data by verifying
-        // that a fresh store with v1 schema can hold and return rounds.
-        //
-        // Implementation note: when the actual migration is written (M2.6),
-        // this test should use a temporary directory with a v1 store file.
-
         // Given: 3 rounds saved to SwiftData (representing v1 data)
         let rounds = (0..<3).map { _ in makeLocalRound(synced: false) }
         for round in rounds {
@@ -143,20 +136,21 @@ final class OfflineStorageTests: XCTestCase {
 
     private func makeLocalRound(synced: Bool) -> LocalRound {
         roundCounter += 1
-        let round = LocalRound()
-        round.id = UUID()
-        round.playerId = UUID()
-        round.seasonId = UUID()
-        round.playedAt = "2026-04-0\(min(roundCounter, 9))"
-        round.courseName = "Test Course \(roundCounter)"
-        round.par = 72
-        round.grossScore = 90 + roundCounter
-        round.courseHandicap = 18
-        round.points = 10
-        round.source = "app"
-        round.syncedToSupabase = synced
-        round.createdAt = Date()
-        return round
+        return LocalRound(
+            id: UUID(),
+            playerId: UUID(),
+            seasonId: UUID(),
+            playedAt: "2026-04-0\(min(roundCounter, 9))",
+            courseName: "Test Course \(roundCounter)",
+            par: 72,
+            grossScore: 90 + roundCounter,
+            courseHandicap: 18,
+            points: 10,
+            source: "app",
+            syncedToSupabase: synced,
+            holeScores: [],
+            createdAt: Date()
+        )
     }
 
     private func makeCourseData() -> CourseData {
@@ -178,16 +172,18 @@ final class OfflineStorageTests: XCTestCase {
     }
 
     private func makeHoles(count: Int, courseId: UUID) -> [CourseHole] {
-        (1...count).map { i in
-            CourseHole(
+        (1...count).map { (i: Int) -> CourseHole in
+            let gLat = 32.8900 + Double(i) * 0.001
+            let gLon = -117.2500 - Double(i) * 0.001
+            return CourseHole(
                 id: UUID(),
                 courseId: courseId,
                 holeNumber: i,
                 par: [3, 4, 5][i % 3],
                 yardage: 300 + i * 20,
                 handicap: i,
-                greenLat: 32.8900 + Double(i) * 0.001,
-                greenLon: -117.2500 - Double(i) * 0.001,
+                greenLat: gLat,
+                greenLon: gLon,
                 greenPolygon: nil,
                 teeLat: nil,
                 teeLon: nil,

@@ -7,6 +7,7 @@
 
 import XCTest
 import CoreLocation
+import Shared
 @testable import THC
 
 final class HazardDistanceTests: XCTestCase {
@@ -122,7 +123,7 @@ final class HazardDistanceTests: XCTestCase {
 
         // When
         let distanceToBend = DistanceCalculator.doglegDistance(
-            holeWay: holeWay,
+            wayPoints: holeWay.points,
             userPosition: userPosition
         )
 

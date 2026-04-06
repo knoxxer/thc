@@ -1,26 +1,29 @@
 import Foundation
 import WatchConnectivity
-import Combine
+import Observation
 import Shared
 
 /// WatchConnectivity delegate for the watchOS side.
 ///
 /// Receives course/round data from the phone via `transferUserInfo` (guaranteed delivery)
-/// and publishes it as `@Published` properties for use by SwiftUI views.
+/// and publishes it as @Observable properties for use by SwiftUI views.
 /// Sends score entries back to the phone via `transferUserInfo` when reachable,
 /// falling back to `transferUserInfo` when not.
-final class PhoneConnectivityService: NSObject, ObservableObject, PhoneConnectivityServiceProviding, @unchecked Sendable {
+///
+/// Fix #20: Migrated from ObservableObject/@Published to @Observable.
+@Observable
+final class PhoneConnectivityService: NSObject, PhoneConnectivityServiceProviding, @unchecked Sendable {
 
-    // MARK: - Published State
+    // MARK: - Observable State
 
     /// The latest round state received from the phone.
-    @Published private(set) var currentRoundState: WatchRoundState?
+    private(set) var currentRoundState: WatchRoundState?
 
     /// Top standings pushed from the phone via updateApplicationContext.
-    @Published private(set) var standings: [SeasonStanding] = []
+    private(set) var standings: [SeasonStanding] = []
 
     /// True while an active WCSession is reachable.
-    @Published private(set) var isPhoneReachable: Bool = false
+    private(set) var isPhoneReachable: Bool = false
 
     // MARK: - AsyncStream Sources
 

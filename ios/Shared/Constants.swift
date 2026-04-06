@@ -6,8 +6,12 @@ public enum Constants {
     // MARK: - GPS / Auto-Advance
 
     /// Distance in meters to the next hole's tee within which the app
-    /// automatically advances to that hole.
-    public static let autoAdvanceThresholdMeters: Double = 30
+    /// automatically advances to that hole (~30 yards).
+    public static let autoAdvanceThresholdMeters: Double = 27.4
+
+    /// Distance in meters beyond which auto-advance triggers as a fallback
+    /// when the player moves away from the previous green (~50 yards).
+    public static let autoAdvanceFallbackMeters: Double = 45.7
 
     /// Speed in m/s below which the player is considered stationary.
     /// Used to debounce GPS updates and avoid spurious readings while walking slowly.

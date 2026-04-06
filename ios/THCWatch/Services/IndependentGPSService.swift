@@ -1,7 +1,7 @@
 import Foundation
 import CoreLocation
 import WatchConnectivity
-import Combine
+import Observation
 import Shared
 
 /// Standalone GPS service for Apple Watch.
@@ -9,26 +9,29 @@ import Shared
 /// Activates CoreLocation on the watch when `WCSession.isReachable = false`
 /// (phone is not nearby or not responding). Calculates distances using
 /// `DistanceCalculator` from the Shared framework.
-final class IndependentGPSService: NSObject, ObservableObject, @unchecked Sendable {
+///
+/// Fix #20: Migrated from ObservableObject/@Published to @Observable.
+@Observable
+final class IndependentGPSService: NSObject, @unchecked Sendable {
 
-    // MARK: - Published State
+    // MARK: - Observable State
 
     /// Most recent device location. Nil until first fix is obtained.
-    @Published private(set) var currentLocation: CLLocation?
+    private(set) var currentLocation: CLLocation?
 
     /// True when the GPS service is actively tracking.
-    @Published private(set) var isTracking: Bool = false
+    private(set) var isTracking: Bool = false
 
     /// Authorization status for CoreLocation.
-    @Published private(set) var authorizationStatus: CLAuthorizationStatus = .notDetermined
+    private(set) var authorizationStatus: CLAuthorizationStatus = .notDetermined
 
     /// True when the watch cannot reach the paired phone.
-    @Published private(set) var isPhoneUnreachable: Bool = false
+    private(set) var isPhoneUnreachable: Bool = false
 
     // MARK: - Distance Outputs
 
     /// Latest green distances computed from `currentLocation` and the provided green target.
-    @Published private(set) var greenDistances: GreenDistances?
+    private(set) var greenDistances: GreenDistances?
 
     // MARK: - Private
 

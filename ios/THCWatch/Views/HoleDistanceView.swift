@@ -6,8 +6,8 @@ import Shared
 /// Uses phone-provided GPS data when available; falls back to IndependentGPSService.
 struct HoleDistanceView: View {
     let roundState: WatchRoundState
-    @ObservedObject var gpsService: IndependentGPSService
-    @ObservedObject var connectivityService: PhoneConnectivityService
+    var gpsService: IndependentGPSService
+    var connectivityService: PhoneConnectivityService
 
     private var distances: GreenDistances? {
         guard

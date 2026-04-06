@@ -29,6 +29,10 @@ protocol CourseDataServiceProviding: Sendable {
 
     /// Pre-fetch OSM data for courses within `radiusKm`. Called on app launch.
     func prefetchNearbyCourses(lat: Double, lon: Double, radiusKm: Double) async
+
+    /// Upsert a course from a search result into `course_data` by `golfcourseapi_id`
+    /// and return the Supabase UUID. If the course already exists, returns its existing ID.
+    func getOrCreateCourse(from result: CourseSearchResult) async throws -> UUID
 }
 
 // MARK: - Supporting Types
@@ -86,6 +90,9 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
     private let overpass: OverpassAPIProviding
     private let golfCourseAPI: GolfCourseAPIClient
 
+    /// Whether the GolfCourseAPI key has been fetched and configured.
+    private var apiKeyConfigured = false
+
     init(
         supabase: SupabaseClientProviding,
         storage: OfflineStorageProviding,
@@ -98,9 +105,37 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
         self.golfCourseAPI = golfCourseAPI
     }
 
+    // MARK: - API Key Lazy Init
+
+    /// Fetches the GolfCourseAPI key from the `app_config` table on first use
+    /// and configures the client. Subsequent calls are no-ops.
+    private func ensureAPIKeyConfigured() async throws {
+        guard !apiKeyConfigured else { return }
+
+        struct AppConfigRow: Decodable {
+            let value: String
+        }
+
+        let rows: [AppConfigRow] = try await supabase.client
+            .from("app_config")
+            .select("value")
+            .eq("key", value: "golfcourseapi_key")
+            .limit(1)
+            .execute()
+            .value
+
+        guard let key = rows.first?.value, !key.isEmpty, key != "YOUR_KEY_HERE" else {
+            throw GolfCourseAPIError.apiKeyUnavailable
+        }
+
+        golfCourseAPI.configure(apiKey: key)
+        apiKeyConfigured = true
+    }
+
     // MARK: - CourseDataServiceProviding
 
     func searchCourses(query: String) async throws -> [CourseSearchResult] {
+        try await ensureAPIKeyConfigured()
         let results = try await golfCourseAPI.searchCourses(query: query)
         return results.map { item in
             CourseSearchResult(
@@ -211,6 +246,41 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
         try await updateHasGreenDataIfComplete(courseId: courseId)
     }
 
+    func getOrCreateCourse(from result: CourseSearchResult) async throws -> UUID {
+        // Check if a course with this golfcourseapi_id already exists.
+        let existing: [CourseData] = try await supabase.client
+            .from("course_data")
+            .select()
+            .eq("golfcourseapi_id", value: result.golfcourseapiId)
+            .limit(1)
+            .execute()
+            .value
+
+        if let course = existing.first {
+            return course.id
+        }
+
+        // Insert a new course row.
+        let newId = UUID()
+        let payload = CourseDataInsertPayload(
+            id: newId,
+            golfcourseapiId: result.golfcourseapiId,
+            name: result.name,
+            clubName: result.clubName,
+            address: result.address,
+            lat: result.lat ?? 0,
+            lon: result.lon ?? 0,
+            holeCount: result.holeCount,
+            par: result.par
+        )
+        try await supabase.client
+            .from("course_data")
+            .insert(payload)
+            .execute()
+
+        return newId
+    }
+
     func prefetchNearbyCourses(lat: Double, lon: Double, radiusKm: Double) async {
         guard let nearby = try? await fetchNearbyFromSupabase(
             lat: lat, lon: lon, radiusKm: prefetchRadiusKm
@@ -272,6 +342,16 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
               let course = courses.first
         else { return nil }
 
+        // Try to fetch real per-hole pars from GolfCourseAPI if the course has an API ID (Fix #13).
+        var apiScorecard: [Int: GolfCourseAPIHole] = [:]
+        if let apiId = course.golfcourseapiId {
+            if let detail = try? await golfCourseAPI.getCourse(id: apiId) {
+                for hole in detail.scorecard {
+                    apiScorecard[hole.holeNumber] = hole
+                }
+            }
+        }
+
         var holes: [CourseHole] = []
         for green in osmData.greens {
             let holeNumber = green.tags["ref"].flatMap(Int.init) ?? holes.count + 1
@@ -279,13 +359,18 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
             let teeLat = holeWay?.points.first?.latitude
             let teeLon = holeWay?.points.first?.longitude
 
+            // Use real par from GolfCourseAPI; default to 0 (unknown) if unavailable (Fix #13).
+            let par = apiScorecard[holeNumber]?.par ?? 0
+            let yardage = apiScorecard[holeNumber]?.yardage
+            let handicap = apiScorecard[holeNumber]?.handicap
+
             let hole = CourseHole(
                 id: UUID(),
                 courseId: courseId,
                 holeNumber: holeNumber,
-                par: 4,  // OSM doesn't carry par — will be filled in from GolfCourseAPI later
-                yardage: nil,
-                handicap: nil,
+                par: par,
+                yardage: yardage,
+                handicap: handicap,
                 greenLat: green.center.latitude,
                 greenLon: green.center.longitude,
                 greenPolygon: green.polygon,
@@ -423,6 +508,44 @@ final class CourseDataService: CourseDataServiceProviding, @unchecked Sendable {
 }
 
 // MARK: - Supabase Payloads
+
+private struct CourseDataInsertPayload: Encodable {
+    let id: String
+    let golfcourseapiId: Int
+    let name: String
+    let clubName: String?
+    let address: String?
+    let lat: Double
+    let lon: Double
+    let holeCount: Int
+    let par: Int
+
+    init(
+        id: UUID, golfcourseapiId: Int, name: String, clubName: String?,
+        address: String?, lat: Double, lon: Double, holeCount: Int, par: Int
+    ) {
+        self.id = id.uuidString.lowercased()
+        self.golfcourseapiId = golfcourseapiId
+        self.name = name
+        self.clubName = clubName
+        self.address = address
+        self.lat = lat
+        self.lon = lon
+        self.holeCount = holeCount
+        self.par = par
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case golfcourseapiId = "golfcourseapi_id"
+        case name
+        case clubName = "club_name"
+        case address
+        case lat, lon
+        case holeCount = "hole_count"
+        case par
+    }
+}
 
 private struct GreenPinUpsertPayload: Encodable {
     let courseId: String

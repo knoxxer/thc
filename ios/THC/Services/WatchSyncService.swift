@@ -18,6 +18,28 @@ protocol WatchSyncServiceProviding: Sendable {
     var watchScoreEntries: AsyncStream<WatchScoreEntry> { get }
 }
 
+// MARK: - WCSession Abstraction (for testability)
+
+/// Protocol abstracting WCSession so tests can inject a mock.
+protocol WCSessionProtocol: AnyObject {
+    var isReachable: Bool { get }
+    var isPaired: Bool { get }
+    var isWatchAppInstalled: Bool { get }
+    var delegate: WCSessionDelegate? { get set }
+
+    func activate()
+    @discardableResult
+    func transferUserInfo(_ userInfo: [String: Any]) -> WCSessionUserInfoTransfer
+    func sendMessage(
+        _ message: [String: Any],
+        replyHandler: (([String: Any]) -> Void)?,
+        errorHandler: ((Error) -> Void)?
+    )
+    func updateApplicationContext(_ applicationContext: [String: Any]) throws
+}
+
+extension WCSession: WCSessionProtocol {}
+
 // MARK: - WCSession Key Constants
 
 private enum WatchKey {
@@ -38,12 +60,12 @@ final class WatchSyncService: NSObject, WatchSyncServiceProviding, WCSessionDele
 
     // MARK: - Private
 
-    private let session: WCSession
+    private let session: WCSessionProtocol
     private var continuation: AsyncStream<WatchScoreEntry>.Continuation?
 
     // MARK: - Init
 
-    init(session: WCSession = .default) {
+    init(session: WCSessionProtocol = WCSession.default) {
         self.session = session
 
         var capturedContinuation: AsyncStream<WatchScoreEntry>.Continuation?
@@ -100,7 +122,8 @@ final class WatchSyncService: NSObject, WatchSyncServiceProviding, WCSessionDele
 
         if session.isReachable {
             // sendMessage delivers immediately when both apps are in the foreground.
-            session.sendMessage([WatchKey.roundState: data], replyHandler: nil) { error in
+            session.sendMessage([WatchKey.roundState: data], replyHandler: nil) { [weak self] error in
+                guard let self else { return }
                 print("[WatchSyncService] sendMessage failed, falling back to transferUserInfo: \(error)")
                 self.session.transferUserInfo([WatchKey.roundState: data])
             }

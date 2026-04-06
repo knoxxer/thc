@@ -53,12 +53,7 @@ final class WatchBatteryTests: XCTestCase {
     }
 }
 
-// MARK: - WKInterfaceDeviceProviding Protocol + Mock
-
-protocol WKInterfaceDeviceProviding {
-    var batteryLevel: Float { get }
-    var isBatteryMonitoringEnabled: Bool { get set }
-}
+// MARK: - Mock
 
 final class MockWKInterfaceDevice: WKInterfaceDeviceProviding {
     var stubbedBatteryLevel: Float = 1.0

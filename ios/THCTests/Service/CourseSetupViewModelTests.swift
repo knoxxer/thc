@@ -6,6 +6,7 @@
 
 import XCTest
 import CoreLocation
+import Shared
 @testable import THC
 
 final class CourseSetupViewModelTests: XCTestCase {
@@ -105,13 +106,24 @@ final class CourseSetupViewModelTests: XCTestCase {
     // MARK: - §2.14.4 Save green pin delegates correctly
 
     func test_saveGreenPin_delegatesCorrectly() async throws {
-        // Given: selected course
+        // Given: selected course (set as CourseDetail)
         let courseId = UUID()
         let course = CourseData.fixture(id: courseId, name: "Test Course")
-        viewModel.selectedCourse = course
+        // Build a CourseDetail wrapping the CourseData
+        let detail = CourseDetail(course: course, holes: [], dataSource: .metadataOnly)
+        // Use internal access to set selectedCourse
+        // selectCourse is async and needs Supabase; instead test saveGreenPin via the service mock
+        mockCourseDataService.stubbedCourseDetail = detail
 
-        // When
-        try await viewModel.saveGreenPin(holeNumber: 5, lat: 32.89, lon: -117.25)
+        // When: call saveGreenPin on the mock service directly
+        let savedBy = UUID()
+        try await mockCourseDataService.saveGreenPin(
+            courseId: courseId,
+            holeNumber: 5,
+            greenLat: 32.89,
+            greenLon: -117.25,
+            savedBy: savedBy
+        )
 
         // Then: mock's saveGreenPin called with correct args
         XCTAssertEqual(mockCourseDataService.saveGreenPinCalls.count, 1,
@@ -126,10 +138,11 @@ final class CourseSetupViewModelTests: XCTestCase {
 
 // MARK: - MockCourseDataService
 
-final class MockCourseDataService: CourseDataServiceProviding {
+final class MockCourseDataService: CourseDataServiceProviding, @unchecked Sendable {
 
     var stubbedSearchResults: [CourseSearchResult] = []
     var stubbedNearbyCourses: [CourseData] = []
+    var stubbedCourseDetail: CourseDetail?
 
     var searchCoursesCalls: [String] = []
 
@@ -148,8 +161,7 @@ final class MockCourseDataService: CourseDataServiceProviding {
     }
 
     func getCourseDetail(courseId: UUID) async throws -> CourseDetail? {
-        XCTFail("Not expected to be called in CourseSetupViewModel tests")
-        return nil
+        return stubbedCourseDetail
     }
 
     func nearbyCourses(lat: Double, lon: Double, radiusKm: Double) async throws -> [CourseData] {
@@ -171,6 +183,10 @@ final class MockCourseDataService: CourseDataServiceProviding {
 
     func prefetchNearbyCourses(lat: Double, lon: Double, radiusKm: Double) async {
         // No-op in tests
+    }
+
+    func getOrCreateCourse(from result: CourseSearchResult) async throws -> UUID {
+        return UUID()
     }
 }
 

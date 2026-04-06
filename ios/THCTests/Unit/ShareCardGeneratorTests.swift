@@ -1,12 +1,14 @@
 // ShareCardGeneratorTests.swift
 // THCTests/Unit
 //
-// Specs 2.16.1-2.16.2 — ShareCardGenerator UIImage generation.
+// Specs 2.16.1-2.16.2 -- ShareCardGenerator UIImage generation.
 // Tests compile but fail (red) until ShareCardGenerator is implemented (M13.7).
 
 import XCTest
+import Shared
 @testable import THC
 
+@MainActor
 final class ShareCardGeneratorTests: XCTestCase {
 
     // MARK: - §2.16.1 Generate image returns non-nil image
@@ -24,12 +26,9 @@ final class ShareCardGeneratorTests: XCTestCase {
             holeScores: holeScores
         )
 
-        // Then: returned UIImage is non-nil with size > 0
-        XCTAssertNotNil(image, "generateImage should return a non-nil UIImage")
-        if let image = image {
-            XCTAssertGreaterThan(image.size.width, 0, "Generated image width must be > 0")
-            XCTAssertGreaterThan(image.size.height, 0, "Generated image height must be > 0")
-        }
+        // Then: returned UIImage has size > 0
+        XCTAssertGreaterThan(image.size.width, 0, "Generated image width must be > 0")
+        XCTAssertGreaterThan(image.size.height, 0, "Generated image height must be > 0")
     }
 
     // MARK: - §2.16.2 Generate image with nil hole scores: no crash
@@ -46,8 +45,8 @@ final class ShareCardGeneratorTests: XCTestCase {
             holeScores: nil
         )
 
-        // Returned UIImage is non-nil (shows round-level info without per-hole detail)
-        XCTAssertNotNil(image, "generateImage with nil holeScores must return a non-nil image")
+        // Returned UIImage has size > 0
+        XCTAssertGreaterThan(image.size.width, 0, "Generated image width must be > 0")
     }
 }
 
