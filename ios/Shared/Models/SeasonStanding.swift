@@ -13,9 +13,13 @@ public struct SeasonStanding: Codable, Identifiable, Sendable {
     public let handicapIndex: Double?
     public let avatarUrl: String?
     public let totalRounds: Int
+    /// True when the player has completed at least `Season.minRounds` rounds.
     public let isEligible: Bool
+    /// Sum of the player's top-N round point scores (the primary sort key for standings).
     public let bestNPoints: Int
+    /// Points from the player's single best round (tiebreaker).
     public let bestRoundPoints: Int
+    /// Net-vs-par from the player's best round (secondary tiebreaker).
     public let bestNetVsPar: Int
 
     public init(

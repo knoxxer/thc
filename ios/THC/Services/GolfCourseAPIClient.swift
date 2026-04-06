@@ -55,8 +55,11 @@ struct GolfCourseAPIHole: Codable, Sendable {
 // MARK: - Rate Limit
 
 /// Persists the daily request count and reset date to UserDefaults.
-/// Free tier limit: 300 requests/day.  We begin returning cached results above 250
-/// to preserve a safety margin.
+///
+/// Free tier limit: 300 requests/day. A soft limit of 250 is enforced client-side
+/// to provide a 50-request safety margin against clock skew and concurrent use.
+/// The count resets at midnight local time (not UTC) to match typical usage patterns.
+/// Requests are counted only on successful parse, not on every HTTP round-trip.
 struct GolfCourseAPIRateLimit {
     private static let countKey = "com.thc.golfcourseapi.dailyCount"
     private static let resetKey = "com.thc.golfcourseapi.resetDate"

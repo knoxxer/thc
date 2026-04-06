@@ -5,6 +5,14 @@ import Shared
 // MARK: - Protocol
 
 /// iPhone-side WatchConnectivity bridge.
+///
+/// Message routing strategy:
+/// - `sendCourseToWatch` uses `transferUserInfo` (queued, guaranteed) because the full
+///   course payload is large and must survive app termination.
+/// - `sendRoundStateToWatch` prefers `sendMessage` (low-latency) when reachable, and
+///   falls back to `transferUserInfo` when not — errors from `sendMessage` also fall back.
+/// - Score entries flow in the reverse direction (watch → phone) via `watchScoreEntries`.
+///
 /// The watch target has a symmetric `PhoneConnectivityService`.
 protocol WatchSyncServiceProviding: Sendable {
     /// Send full course data to the watch via `transferUserInfo` (queued, guaranteed delivery).

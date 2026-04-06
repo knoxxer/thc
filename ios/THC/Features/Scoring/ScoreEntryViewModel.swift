@@ -16,16 +16,19 @@ final class ScoreEntryViewModel: @unchecked Sendable {
 
     // MARK: - Computed Values
 
+    /// Net score = gross score − course handicap.
     var netScore: Int? {
         guard let gross = grossScore, let hcp = courseHandicap else { return nil }
         return gross - hcp
     }
 
+    /// Net vs par = net score − par. Negative values mean under par.
     var netVsPar: Int? {
         guard let net = netScore else { return nil }
         return net - par
     }
 
+    /// Points awarded for this round using the THC scoring formula (see `PointsCalculator`).
     var points: Int? {
         guard let nvp = netVsPar else { return nil }
         return PointsCalculator.calculatePoints(netVsPar: nvp)

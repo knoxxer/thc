@@ -141,8 +141,11 @@ final class IndependentGPSService: NSObject, @unchecked Sendable {
         )
     }
 
+    /// Adapt GPS distance filter based on movement speed.
+    /// Stationary: 20 m filter (coarse, battery-friendly for standing on the green).
+    /// Moving: 5 m filter (responsive for approaching the green).
+    /// Speed < 0 means unavailable — treated as stationary for safety.
     private func adjustLocationAccuracy(for location: CLLocation) {
-        // Reduce polling frequency when stationary to preserve battery.
         let speedMPS = location.speed
         if speedMPS >= 0 && speedMPS < Self.stationarySpeedThresholdMPS {
             // User is stationary — reduce frequency

@@ -211,6 +211,7 @@ protocol OfflineStorageProviding: Sendable {
     // MARK: Hole scores
 
     /// Append a hole score to an existing local round.
+    /// Throws `OfflineStorageError.roundNotFound` if no `LocalRound` with `roundId` exists.
     func saveHoleScore(_ score: LocalHoleScore, roundId: UUID) throws
 }
 

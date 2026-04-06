@@ -20,12 +20,16 @@ protocol OverpassAPIProviding: Sendable {
 
 // MARK: - Data Types
 
+/// All golf-relevant OSM features extracted from an Overpass API response.
+/// Polygon features (greens, bunkers, etc.) use `OSMGolfFeature`.
+/// Hole routing polylines use `OSMHoleWay`.
 struct OSMGolfData: Sendable {
     let greens: [OSMGolfFeature]
     let bunkers: [OSMGolfFeature]
     let water: [OSMGolfFeature]
     let fairways: [OSMGolfFeature]
     let tees: [OSMGolfFeature]
+    /// Ordered tee-to-green polylines for each hole (`golf=hole` ways in OSM).
     let holeWays: [OSMHoleWay]
 
     static let empty = OSMGolfData(
@@ -33,14 +37,17 @@ struct OSMGolfData: Sendable {
     )
 }
 
+/// A single OSM polygon feature (green, bunker, fairway, tee, or water hazard).
 struct OSMGolfFeature: Sendable {
     let osmId: String
     let polygon: GeoJSONPolygon
+    /// Arithmetic centroid of the polygon vertices — used as the green center coordinate.
     let center: CLLocationCoordinate2D
     /// Raw OSM tags, e.g. `["ref": "7"]` for hole number.
     let tags: [String: String]
 }
 
+/// An OSM `golf=hole` way: the routing polyline from tee to green.
 struct OSMHoleWay: Sendable {
     let osmId: String
     /// Parsed from the `ref` OSM tag, nil if absent or non-numeric.

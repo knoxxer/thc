@@ -8,7 +8,9 @@ public struct Season: Codable, Identifiable, Sendable {
     public let startsAt: Date
     public let endsAt: Date
     public let isActive: Bool
+    /// Minimum rounds a player must complete to be eligible for the season title.
     public let minRounds: Int
+    /// Only the top N rounds per player count toward their season score (best-of-N).
     public let topNRounds: Int
     public let createdAt: Date
 

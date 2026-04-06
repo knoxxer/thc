@@ -109,16 +109,22 @@ public enum DistanceCalculator {
             return GreenDistances(front: nil, center: center, back: nil)
         }
 
+        // Build a unit vector in the approach direction (approachFrom → greenCenter) in
+        // a locally-flat coordinate system. Longitude degrees are scaled by cos(lat)
+        // to approximate equal-distance units on both axes near the green.
         let axisLat = greenCenter.latitude - approachFrom.latitude
         let cosLat = cos(greenCenter.latitude.toRadians)
         let axisLon = (greenCenter.longitude - approachFrom.longitude) * cosLat
         let axisLen = sqrt(axisLat * axisLat + axisLon * axisLon)
         guard axisLen > 0 else {
+            // approachFrom == greenCenter: no valid axis, fall back to center-only.
             return GreenDistances(front: nil, center: center, back: nil)
         }
         let unitLat = axisLat / axisLen
         let unitLon = axisLon / axisLen
 
+        // Project each polygon vertex onto the approach axis. Negative projection = front
+        // of green (toward the player); positive = back of green (away from the player).
         let ring = polygon.coordinates.first ?? []
         var minProjection = Double.infinity
         var maxProjection = -Double.infinity
@@ -140,6 +146,8 @@ public enum DistanceCalculator {
             return GreenDistances(front: nil, center: center, back: nil)
         }
 
+        // Convert degree-scaled projections back to meters using the standard
+        // 111,139 m/degree approximation (accurate to <0.1% within ±85° latitude).
         let metersPerDegreeLat = 111_139.0
         let frontOffsetMeters = abs(minProjection) * metersPerDegreeLat
         let backOffsetMeters  = abs(maxProjection) * metersPerDegreeLat

@@ -5,6 +5,7 @@
 // Tests compile but fail (red) until push notification infrastructure is implemented (M13.9).
 
 import XCTest
+import UserNotifications
 @testable import THC
 
 final class PushNotificationTests: XCTestCase {
@@ -90,7 +91,7 @@ final class MockUNUserNotificationCenter: UNUserNotificationCenterProviding, @un
     var stubbedPermissionStatus: PermissionStatus = .notDetermined
     var requestAuthorizationCallCount = 0
 
-    func requestAuthorization(options: Any) async throws -> Bool {
+    func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool {
         requestAuthorizationCallCount += 1
         return stubbedPermissionStatus == .granted
     }

@@ -36,6 +36,11 @@ protocol BackgroundRefreshServiceProviding: Sendable {
 
 // MARK: - Implementation
 
+/// Schedules and handles `BGAppRefreshTask` to keep standings and the offline round
+/// queue up to date while the app is not in the foreground.
+///
+/// Each refresh: (1) syncs pending local rounds to Supabase, (2) refreshes the active
+/// season standings, (3) prefetches nearby course data using the last known GPS location.
 final class BackgroundRefreshService: BackgroundRefreshServiceProviding, @unchecked Sendable {
     private let scheduler: BGTaskSchedulerProviding
     private let syncService: SyncServiceProviding
@@ -150,19 +155,25 @@ final class BackgroundRefreshService: BackgroundRefreshServiceProviding, @unchec
 
 /// Simple last-known-location store written by `LocationManager` so
 /// `BackgroundRefreshService` can use it without importing the GPS module.
+///
+/// Uses a dedicated boolean key to distinguish "no location saved" from a
+/// legitimate fix at (0, 0) in the Gulf of Guinea.
 enum LocationCache {
     private static let latKey = "com.thc.lastKnownLat"
     private static let lonKey = "com.thc.lastKnownLon"
+    /// Set to true whenever a valid GPS fix has been stored.
+    private static let hasLocationKey = "com.thc.hasLastKnownLocation"
 
     static var lastKnownLocation: (latitude: Double, longitude: Double)? {
+        guard UserDefaults.standard.bool(forKey: hasLocationKey) else { return nil }
         let lat = UserDefaults.standard.double(forKey: latKey)
         let lon = UserDefaults.standard.double(forKey: lonKey)
-        guard lat != 0 || lon != 0 else { return nil }
         return (lat, lon)
     }
 
     static func save(latitude: Double, longitude: Double) {
         UserDefaults.standard.set(latitude, forKey: latKey)
         UserDefaults.standard.set(longitude, forKey: lonKey)
+        UserDefaults.standard.set(true, forKey: hasLocationKey)
     }
 }

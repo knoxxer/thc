@@ -21,6 +21,9 @@ struct HoleDistanceView: View {
             try? JSONDecoder().decode(GeoJSONPolygon.self, from: $0)
         }
 
+        // approachFrom defaults to userLocation when no separate approach point is available.
+        // When approachFrom == greenCenter the axis has zero length, so DistanceCalculator
+        // returns front=nil/back=nil and falls back to center-only distance — acceptable.
         return DistanceCalculator.greenDistances(
             userLocation: userLocation,
             greenCenter: greenCenter,

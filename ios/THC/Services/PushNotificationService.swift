@@ -3,6 +3,7 @@ import UserNotifications
 
 // MARK: - Event Types
 
+/// Emitted when a player's season standings rank changes.
 struct StandingsChangeEvent {
     let previousRank: Int
     let newRank: Int
@@ -10,6 +11,7 @@ struct StandingsChangeEvent {
     let playerName: String
 }
 
+/// Emitted when a player is one round away from meeting the minimum round eligibility requirement.
 struct EligibilityEvent {
     let playerId: UUID
     let currentRounds: Int
@@ -18,12 +20,18 @@ struct EligibilityEvent {
 
 // MARK: - Protocol
 
+/// Injectable abstraction over UNUserNotificationCenter for testability.
 protocol UNUserNotificationCenterProviding: Sendable {
-    func requestAuthorization(options: Any) async throws -> Bool
+    func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool
 }
+
+extension UNUserNotificationCenter: UNUserNotificationCenterProviding {}
 
 // MARK: - Implementation
 
+/// Handles push notification permission requests and triggers server-side push events
+/// by inserting rows into the `push_events` Supabase table. A server-side Edge Function
+/// reads that table and fans out the actual APNs deliveries.
 @Observable
 final class PushNotificationService: @unchecked Sendable {
     private let supabase: SupabaseClientProviding

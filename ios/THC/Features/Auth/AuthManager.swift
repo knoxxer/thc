@@ -120,7 +120,12 @@ final class AuthManager: @unchecked Sendable {
 
     // MARK: - Player Resolution
 
-    /// Looks up the `players` row that matches the authenticated user's email.
+    /// Looks up the `players` row for a newly authenticated user.
+    ///
+    /// Two-step lookup: primary on `auth_user_id`, fallback on `email`.
+    /// The email fallback handles accounts created before `auth_user_id` was populated
+    /// in the `players` table. Network errors surface as `.error` rather than `.notAPlayer`
+    /// so the UI can offer a retry rather than permanently blocking the user.
     private func resolvePlayer(for user: Supabase.User) async {
         do {
             // Primary lookup: match on auth_user_id

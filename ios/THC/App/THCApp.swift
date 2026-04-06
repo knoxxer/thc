@@ -2,6 +2,12 @@ import SwiftUI
 import SwiftData
 import Shared
 
+/// App entry point. Wires up the service graph and injects it into the SwiftUI environment.
+///
+/// Service ownership: `THCApp` owns the `ModelContainer`, `SyncService`,
+/// `CourseDataService`, and `LocationManager`. They are long-lived and injected
+/// into the view hierarchy via `ContentView` rather than the environment to keep
+/// the dependency graph explicit.
 @main
 struct THCApp: App {
     @State private var authManager: AuthManager

@@ -272,12 +272,11 @@ enum THCComplicationUpdater {
             defaults.removeObject(forKey: DefaultsKey.complicationRank)
         }
 
-        if let state = roundState,
-           let greenLat = state.greenLat,
-           let greenLon = state.greenLon {
-            // Distance is recalculated from cached GPS in the provider;
-            // for complication we store the last known distance written by the app.
-            // This is updated from IndependentGPSService / PhoneConnectivityService.
+        if let state = roundState, state.greenLat != nil {
+            // Par is always available when we have an active round with green data.
+            // Distance is written separately via updateDistance(_:) whenever a new
+            // GPS fix arrives — we don't set it here because this method doesn't
+            // have the current user location.
             defaults.set(state.par, forKey: DefaultsKey.complicationPar)
         } else {
             defaults.removeObject(forKey: DefaultsKey.complicationDistance)

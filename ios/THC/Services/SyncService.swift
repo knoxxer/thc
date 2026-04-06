@@ -5,6 +5,13 @@ import Shared
 // MARK: - Protocol
 
 /// Bidirectional sync between SwiftData and Supabase.
+///
+/// Sync is one-directional for rounds: local → Supabase. Reads (standings, player rounds)
+/// go directly from Supabase → caller and are not cached locally. The two-stage dedup
+/// strategy prevents double-submission:
+/// 1. SwiftData `syncedToSupabase` flag prevents resubmission after a confirmed upload.
+/// 2. Server-side composite key check (player_id + played_at + course_name + gross_score)
+///    catches rounds that were entered via another path (e.g., web form) with a different UUID.
 protocol SyncServiceProviding: Sendable {
     /// Upload all unsynced `LocalRound`s to Supabase.
     /// Returns the count of successfully synced rounds.

@@ -7,8 +7,8 @@ import Shared
 ///
 /// Receives course/round data from the phone via `transferUserInfo` (guaranteed delivery)
 /// and publishes it as @Observable properties for use by SwiftUI views.
-/// Sends score entries back to the phone via `transferUserInfo` when reachable,
-/// falling back to `transferUserInfo` when not.
+/// Sends score entries back to the phone via `sendMessage` when reachable,
+/// falling back to `transferUserInfo` for guaranteed delivery when not.
 ///
 /// Fix #20: Migrated from ObservableObject/@Published to @Observable.
 @Observable

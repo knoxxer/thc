@@ -5,9 +5,15 @@ import Shared
 // MARK: - Protocol
 
 /// Multi-source course data resolution service.
-/// Resolution order: SwiftData cache → Supabase tap-and-save → OSM Overpass.
-/// Cache-first is intentional: Overpass has 2-10s latency; we use it only as a
-/// last resort and then persist the result to both Supabase and SwiftData.
+///
+/// Resolution order for `getCourseDetail`:
+/// 1. SwiftData cache (instant, offline-safe) — fresh within `Constants.cacheTTL` (7 days)
+/// 2. Supabase `course_holes` table — tap-and-save or previously imported OSM data
+/// 3. OSM Overpass API (2–10 s, last resort) — result is then written back to Supabase
+///    so future calls hit path 2 instead
+///
+/// The `source` field on `CourseHole` rows signals data quality:
+/// "osm" rows carry green polygon geometry; "tap_and_save" rows are center-only.
 protocol CourseDataServiceProviding: Sendable {
     /// Search for courses by name via GolfCourseAPI.
     func searchCourses(query: String) async throws -> [CourseSearchResult]

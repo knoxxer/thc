@@ -54,6 +54,11 @@ final class SocialService: SocialServiceProviding, @unchecked Sendable {
 
     // MARK: - SocialServiceProviding
 
+    /// Subscribe to live round updates. Yields the full `live_rounds` table on each change.
+    ///
+    /// Re-fetching the whole table on every postgres_changes event (rather than applying
+    /// incremental updates) keeps the implementation simple and correct. The `live_rounds`
+    /// table is tiny (one row per active player) so the extra bandwidth is negligible.
     func liveRoundsFeed() -> AsyncStream<[LiveRound]> {
         AsyncStream { [weak self] continuation in
             guard let self else {

@@ -93,6 +93,11 @@ extension CachedHole {
 /// Saves go to both Supabase (via `TapAndSavePersisting`) and the local SwiftData cache.
 /// When Supabase is unavailable, the pin is queued locally with source "tap_and_save_pending"
 /// and can be synced later via `getPendingPins()`.
+///
+/// Data source priority for green data:
+/// - "osm"  — fetched from OpenStreetMap; includes polygon geometry (front/back distances available)
+/// - "tap_and_save" — user-placed center pin; no polygon (only center distance available)
+/// - "tap_and_save_pending" — saved offline, not yet confirmed uploaded to Supabase
 final class TapAndSaveService: @unchecked Sendable {
     private let persistence: TapAndSavePersisting
     private let context: ModelContext

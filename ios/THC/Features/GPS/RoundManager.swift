@@ -162,6 +162,12 @@ final class RoundManager: @unchecked Sendable {
         currentHole = number
     }
 
+    /// Finalise the round, persist it offline, attempt immediate sync, and broadcast deletion
+    /// of the live round row. Returns the `LocalRound` that was saved.
+    ///
+    /// Scoring: netScore = grossScore − courseHandicap; points = PointsCalculator(netVsPar).
+    /// `courseHandicap` is floored from `player.handicapIndex` (no USGA slope adjustment on
+    /// the app side — the app stores a pre-computed course handicap entered by the user).
     @discardableResult
     func finishRound() async throws -> LocalRound {
         // Fix #22: Guard against finishing a round that was never started.
