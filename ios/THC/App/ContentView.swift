@@ -1,0 +1,142 @@
+import SwiftUI
+import Shared
+
+/// Root view. Shows LoginView when unauthenticated, tab bar when signed in.
+struct ContentView: View {
+    @Environment(AuthManager.self) private var authManager
+
+    let syncService: SyncServiceProviding
+    let courseDataService: CourseDataServiceProviding
+    let locationManager: LocationManager
+    let supabase: SupabaseClientProviding
+
+    var body: some View {
+        switch authManager.state {
+        case .loading:
+            loadingView
+        case .signedOut:
+            LoginView()
+        case .notAPlayer:
+            notAPlayerView
+        case .signedIn(let player):
+            MainTabView(
+                player: player,
+                syncService: syncService,
+                courseDataService: courseDataService,
+                locationManager: locationManager,
+                supabase: supabase
+            )
+        }
+    }
+
+    // MARK: - State Views
+
+    private var loadingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .progressViewStyle(.circular)
+                .scaleEffect(1.4)
+            Text("Loading…")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+    }
+
+    private var notAPlayerView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "person.slash")
+                .font(.system(size: 56))
+                .foregroundStyle(.secondary)
+            Text("Not a Player")
+                .font(.title2.bold())
+            Text("Your account doesn't have a player profile. Contact an admin to be added.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+            Button("Sign Out") {
+                Task { await authManager.signOut() }
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+    }
+}
+
+// MARK: - MainTabView
+
+private struct MainTabView: View {
+    let player: Player
+    let syncService: SyncServiceProviding
+    let courseDataService: CourseDataServiceProviding
+    let locationManager: LocationManager
+    let supabase: SupabaseClientProviding
+
+    var body: some View {
+        TabView {
+            // Tab 1: Standings
+            NavigationStack {
+                LeaderboardView(player: player, syncService: syncService)
+            }
+            .tabItem {
+                Label("Standings", systemImage: "list.number")
+            }
+
+            // Tab 2: New Round (course search)
+            // Season and storage are injected when available via StandingsViewModel.
+            // CourseSearchView handles season=nil gracefully (shows "no active season").
+            NavigationStack {
+                CourseSearchViewPlaceholder(
+                    player: player,
+                    courseDataService: courseDataService,
+                    locationManager: locationManager,
+                    syncService: syncService
+                )
+                .navigationTitle("New Round")
+            }
+            .tabItem {
+                Label("New Round", systemImage: "plus.circle.fill")
+            }
+
+            // Tab 3: Profile
+            NavigationStack {
+                PlayerDetailView(player: player, isCurrentUser: true)
+                    .navigationTitle("Profile")
+            }
+            .tabItem {
+                Label("Profile", systemImage: "person.circle")
+            }
+        }
+    }
+}
+
+// MARK: - CourseSearchViewPlaceholder
+//
+// Wraps CourseSearchView to load the active season before displaying it.
+// NoOpOfflineStorage is used here — PostRoundView creates its own OfflineStorage
+// when invoked. For a small group app this is acceptable.
+private struct CourseSearchViewPlaceholder: View {
+    let player: Player
+    let courseDataService: CourseDataServiceProviding
+    let locationManager: LocationManager
+    let syncService: SyncServiceProviding
+
+    @State private var season: Season?
+
+    var body: some View {
+        CourseSearchView(
+            player: player,
+            courseDataService: courseDataService,
+            locationManager: locationManager,
+            offlineStorage: NoOpOfflineStorage(),
+            syncService: syncService,
+            season: season
+        )
+        .task {
+            season = try? await syncService.fetchActiveSeason()
+        }
+    }
+}

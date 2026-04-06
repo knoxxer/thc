@@ -1,0 +1,6 @@
+{
+  "error": "rate_limit_exceeded",
+  "message": "You have exceeded the daily request limit of 300 requests. Limit resets at midnight UTC.",
+  "retry_after": 86400,
+  "status": 429
+}

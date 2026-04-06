@@ -41,7 +41,7 @@ export interface Round {
   net_vs_par: number;
   points: number | null;
   ghin_score_id: string | null;
-  source: "manual" | "ghin";
+  source: "manual" | "ghin" | "app";
   entered_by: string | null;
   created_at: string;
 }

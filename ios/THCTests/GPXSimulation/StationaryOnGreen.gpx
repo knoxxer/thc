@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="THC Test Suite"
+     xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1
+                         http://www.topografix.com/GPX/1/1/gpx.xsd">
+
+  <!--
+    StationaryOnGreen.gpx
+    Same coordinate repeated every 5 seconds for 3 minutes (36 points total).
+
+    Purpose: Stress-test stationary detection and edge cases:
+    - User stands on green for 3 minutes without advancing → no crash, no false advance
+    - Battery optimization: reduced polling should activate after 30 seconds stationary
+    - Distance display: shows ~0 yards; no negative distance rendered
+    - Score prompt: does NOT re-appear multiple times
+
+    Coordinate: Hole 7 green center at Torrey Pines South (representative OSM-mapped green)
+
+    Acceptance criteria:
+    ✓ After 30 seconds stationary: distanceFilter switches to 10m (battery save mode)
+    ✓ After 180 seconds: currentHole remains 7 (no auto-advance)
+    ✓ Distance to green displays 0–3 yards (floating point tolerance)
+    ✓ Score prompt appears exactly once
+    ✓ App does not crash
+
+    Note: 36 points × 5s = 180 seconds = 3 minutes exactly
+  -->
+
+  <metadata>
+    <name>Stationary On Green — 3 Minutes</name>
+    <desc>Same coordinate every 5 seconds for 3 minutes. Tests stationary detection, battery optimization, and zero-distance edge case.</desc>
+    <time>2026-04-05T12:00:00Z</time>
+  </metadata>
+
+  <trk>
+    <name>StationaryOnGreen3Min</name>
+    <trkseg>
+
+      <!-- Arrive at green (approach) -->
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:00Z</time></trkpt>
+
+      <!-- 36 stationary points at 5-second intervals = 3 minutes exactly -->
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:05Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:10Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:15Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:20Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:25Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:30Z</time></trkpt>
+      <!-- BATTERY OPTIMIZATION TRIGGER: 30 seconds stationary reached — polling should reduce -->
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:35Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:40Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:45Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:50Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:00:55Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:00Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:05Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:10Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:15Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:20Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:25Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:30Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:35Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:40Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:45Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:50Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:01:55Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:00Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:05Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:10Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:15Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:20Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:25Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:30Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:35Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:40Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:45Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:50Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:02:55Z</time></trkpt>
+      <!-- 36th point = 3:00 exactly -->
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T12:03:00Z</time></trkpt>
+
+    </trkseg>
+  </trk>
+</gpx>

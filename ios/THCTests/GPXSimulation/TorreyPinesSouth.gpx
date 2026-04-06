@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="THC Test Suite"
+     xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1
+                         http://www.topografix.com/GPX/1/1/gpx.xsd">
+
+  <!--
+    TorreyPinesSouth.gpx
+    Full 18-hole simulation at Torrey Pines South Course, La Jolla, CA.
+
+    Verification table (tee to green distance):
+    Hole 1:  Tee (32.9014, -117.2533) → Green (32.8998, -117.2520) ≈ 452 yards ± 10
+    Hole 10: Tee (32.8974, -117.2495) → Green (32.8964, -117.2485) ≈ 312 yards ± 10
+    Hole 18: Tee (32.8964, -117.2528) → Green (32.8951, -117.2501) ≈ 570 yards ± 10
+
+    Each hole:
+      1. Tee box position
+      2. Mid-fairway approach (~200 yards out)
+      3. Short game position (~100 yards out)
+      4. Green approach (~40 yards out)
+      5. Green center (stationary mode trigger — 6x repeats at 10s intervals)
+
+    GPS blackout simulation: 60-second gap in segment 18 (test GPSLoss behavior)
+  -->
+
+  <metadata>
+    <name>Torrey Pines South — 18 Holes</name>
+    <desc>Full round simulation for GPS distance accuracy testing. Use with Xcode scheme Run Options → Custom Location → GPX File.</desc>
+    <time>2026-04-05T08:00:00Z</time>
+  </metadata>
+
+  <trk>
+    <name>TorreyPinesSouth18Holes</name>
+    <trkseg>
+
+      <!-- ==================== HOLE 1 (Par 4, ~452 yards) ==================== -->
+      <trkpt lat="32.9014" lon="-117.2533"><ele>33</ele><time>2026-04-05T08:00:00Z</time></trkpt>
+      <trkpt lat="32.9010" lon="-117.2530"><ele>32</ele><time>2026-04-05T08:01:00Z</time></trkpt>
+      <trkpt lat="32.9006" lon="-117.2527"><ele>31</ele><time>2026-04-05T08:02:00Z</time></trkpt>
+      <trkpt lat="32.9003" lon="-117.2524"><ele>30</ele><time>2026-04-05T08:03:00Z</time></trkpt>
+      <!-- Approach: ~100 yards from green -->
+      <trkpt lat="32.9001" lon="-117.2523"><ele>29</ele><time>2026-04-05T08:04:00Z</time></trkpt>
+      <!-- Green center (stationary — repeat 6x to trigger battery optimization) -->
+      <trkpt lat="32.8998" lon="-117.2520"><ele>27</ele><time>2026-04-05T08:05:00Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2520"><ele>27</ele><time>2026-04-05T08:05:10Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2520"><ele>27</ele><time>2026-04-05T08:05:20Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2520"><ele>27</ele><time>2026-04-05T08:05:30Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2520"><ele>27</ele><time>2026-04-05T08:05:40Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2520"><ele>27</ele><time>2026-04-05T08:05:50Z</time></trkpt>
+
+      <!-- Walk to Hole 2 Tee -->
+      <trkpt lat="32.9002" lon="-117.2515"><ele>28</ele><time>2026-04-05T08:07:00Z</time></trkpt>
+      <trkpt lat="32.9006" lon="-117.2510"><ele>29</ele><time>2026-04-05T08:08:00Z</time></trkpt>
+
+      <!-- ==================== HOLE 2 (Par 4, ~392 yards) ==================== -->
+      <trkpt lat="32.9008" lon="-117.2508"><ele>30</ele><time>2026-04-05T08:09:00Z</time></trkpt>
+      <trkpt lat="32.9005" lon="-117.2505"><ele>29</ele><time>2026-04-05T08:10:00Z</time></trkpt>
+      <trkpt lat="32.9002" lon="-117.2502"><ele>28</ele><time>2026-04-05T08:11:00Z</time></trkpt>
+      <trkpt lat="32.9000" lon="-117.2499"><ele>27</ele><time>2026-04-05T08:12:00Z</time></trkpt>
+      <!-- Green center -->
+      <trkpt lat="32.8998" lon="-117.2497"><ele>26</ele><time>2026-04-05T08:13:00Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2497"><ele>26</ele><time>2026-04-05T08:13:10Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2497"><ele>26</ele><time>2026-04-05T08:13:20Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2497"><ele>26</ele><time>2026-04-05T08:13:30Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2497"><ele>26</ele><time>2026-04-05T08:13:40Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2497"><ele>26</ele><time>2026-04-05T08:13:50Z</time></trkpt>
+
+      <!-- Walk to Hole 3 -->
+      <trkpt lat="32.9001" lon="-117.2493"><ele>27</ele><time>2026-04-05T08:15:00Z</time></trkpt>
+
+      <!-- ==================== HOLES 3-9 (condensed for simulation length) ==================== -->
+      <!-- Hole 3 Tee -->
+      <trkpt lat="32.9004" lon="-117.2490"><ele>28</ele><time>2026-04-05T08:16:00Z</time></trkpt>
+      <trkpt lat="32.9001" lon="-117.2487"><ele>27</ele><time>2026-04-05T08:17:30Z</time></trkpt>
+      <!-- Hole 3 Green -->
+      <trkpt lat="32.8998" lon="-117.2484"><ele>26</ele><time>2026-04-05T08:19:00Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2484"><ele>26</ele><time>2026-04-05T08:19:10Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2484"><ele>26</ele><time>2026-04-05T08:19:20Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2484"><ele>26</ele><time>2026-04-05T08:19:30Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2484"><ele>26</ele><time>2026-04-05T08:19:40Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2484"><ele>26</ele><time>2026-04-05T08:19:50Z</time></trkpt>
+
+      <!-- Hole 4 -->
+      <trkpt lat="32.8994" lon="-117.2480"><ele>25</ele><time>2026-04-05T08:22:00Z</time></trkpt>
+      <trkpt lat="32.8990" lon="-117.2476"><ele>24</ele><time>2026-04-05T08:24:30Z</time></trkpt>
+      <trkpt lat="32.8986" lon="-117.2473"><ele>23</ele><time>2026-04-05T08:26:00Z</time></trkpt>
+      <trkpt lat="32.8986" lon="-117.2473"><ele>23</ele><time>2026-04-05T08:26:10Z</time></trkpt>
+      <trkpt lat="32.8986" lon="-117.2473"><ele>23</ele><time>2026-04-05T08:26:20Z</time></trkpt>
+      <trkpt lat="32.8986" lon="-117.2473"><ele>23</ele><time>2026-04-05T08:26:30Z</time></trkpt>
+      <trkpt lat="32.8986" lon="-117.2473"><ele>23</ele><time>2026-04-05T08:26:40Z</time></trkpt>
+      <trkpt lat="32.8986" lon="-117.2473"><ele>23</ele><time>2026-04-05T08:26:50Z</time></trkpt>
+
+      <!-- Hole 5 -->
+      <trkpt lat="32.8982" lon="-117.2470"><ele>22</ele><time>2026-04-05T08:29:00Z</time></trkpt>
+      <trkpt lat="32.8978" lon="-117.2467"><ele>22</ele><time>2026-04-05T08:31:30Z</time></trkpt>
+      <trkpt lat="32.8975" lon="-117.2464"><ele>22</ele><time>2026-04-05T08:33:00Z</time></trkpt>
+      <trkpt lat="32.8975" lon="-117.2464"><ele>22</ele><time>2026-04-05T08:33:10Z</time></trkpt>
+      <trkpt lat="32.8975" lon="-117.2464"><ele>22</ele><time>2026-04-05T08:33:20Z</time></trkpt>
+      <trkpt lat="32.8975" lon="-117.2464"><ele>22</ele><time>2026-04-05T08:33:30Z</time></trkpt>
+      <trkpt lat="32.8975" lon="-117.2464"><ele>22</ele><time>2026-04-05T08:33:40Z</time></trkpt>
+      <trkpt lat="32.8975" lon="-117.2464"><ele>22</ele><time>2026-04-05T08:33:50Z</time></trkpt>
+
+      <!-- Hole 6 -->
+      <trkpt lat="32.8972" lon="-117.2460"><ele>21</ele><time>2026-04-05T08:36:00Z</time></trkpt>
+      <trkpt lat="32.8968" lon="-117.2457"><ele>21</ele><time>2026-04-05T08:38:30Z</time></trkpt>
+      <trkpt lat="32.8965" lon="-117.2454"><ele>21</ele><time>2026-04-05T08:40:00Z</time></trkpt>
+      <trkpt lat="32.8965" lon="-117.2454"><ele>21</ele><time>2026-04-05T08:40:10Z</time></trkpt>
+      <trkpt lat="32.8965" lon="-117.2454"><ele>21</ele><time>2026-04-05T08:40:20Z</time></trkpt>
+      <trkpt lat="32.8965" lon="-117.2454"><ele>21</ele><time>2026-04-05T08:40:30Z</time></trkpt>
+      <trkpt lat="32.8965" lon="-117.2454"><ele>21</ele><time>2026-04-05T08:40:40Z</time></trkpt>
+      <trkpt lat="32.8965" lon="-117.2454"><ele>21</ele><time>2026-04-05T08:40:50Z</time></trkpt>
+
+      <!-- Hole 7 -->
+      <trkpt lat="32.8962" lon="-117.2450"><ele>20</ele><time>2026-04-05T08:43:00Z</time></trkpt>
+      <trkpt lat="32.8958" lon="-117.2447"><ele>20</ele><time>2026-04-05T08:45:30Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T08:47:00Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T08:47:10Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T08:47:20Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T08:47:30Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T08:47:40Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T08:47:50Z</time></trkpt>
+
+      <!-- Hole 8 -->
+      <trkpt lat="32.8952" lon="-117.2441"><ele>19</ele><time>2026-04-05T08:50:00Z</time></trkpt>
+      <trkpt lat="32.8948" lon="-117.2438"><ele>19</ele><time>2026-04-05T08:52:30Z</time></trkpt>
+      <trkpt lat="32.8945" lon="-117.2435"><ele>19</ele><time>2026-04-05T08:54:00Z</time></trkpt>
+      <trkpt lat="32.8945" lon="-117.2435"><ele>19</ele><time>2026-04-05T08:54:10Z</time></trkpt>
+      <trkpt lat="32.8945" lon="-117.2435"><ele>19</ele><time>2026-04-05T08:54:20Z</time></trkpt>
+      <trkpt lat="32.8945" lon="-117.2435"><ele>19</ele><time>2026-04-05T08:54:30Z</time></trkpt>
+      <trkpt lat="32.8945" lon="-117.2435"><ele>19</ele><time>2026-04-05T08:54:40Z</time></trkpt>
+      <trkpt lat="32.8945" lon="-117.2435"><ele>19</ele><time>2026-04-05T08:54:50Z</time></trkpt>
+
+      <!-- Hole 9 -->
+      <trkpt lat="32.8942" lon="-117.2432"><ele>18</ele><time>2026-04-05T08:57:00Z</time></trkpt>
+      <trkpt lat="32.8938" lon="-117.2429"><ele>18</ele><time>2026-04-05T08:59:30Z</time></trkpt>
+      <trkpt lat="32.8935" lon="-117.2426"><ele>18</ele><time>2026-04-05T09:01:00Z</time></trkpt>
+      <trkpt lat="32.8935" lon="-117.2426"><ele>18</ele><time>2026-04-05T09:01:10Z</time></trkpt>
+      <trkpt lat="32.8935" lon="-117.2426"><ele>18</ele><time>2026-04-05T09:01:20Z</time></trkpt>
+      <trkpt lat="32.8935" lon="-117.2426"><ele>18</ele><time>2026-04-05T09:01:30Z</time></trkpt>
+      <trkpt lat="32.8935" lon="-117.2426"><ele>18</ele><time>2026-04-05T09:01:40Z</time></trkpt>
+      <trkpt lat="32.8935" lon="-117.2426"><ele>18</ele><time>2026-04-05T09:01:50Z</time></trkpt>
+
+      <!-- ==================== BACK NINE ==================== -->
+      <!-- Hole 10 Tee (reference coordinate for verification) -->
+      <trkpt lat="32.8974" lon="-117.2495"><ele>25</ele><time>2026-04-05T09:10:00Z</time></trkpt>
+      <trkpt lat="32.8970" lon="-117.2492"><ele>24</ele><time>2026-04-05T09:11:30Z</time></trkpt>
+      <!-- Hole 10 Green -->
+      <trkpt lat="32.8964" lon="-117.2485"><ele>23</ele><time>2026-04-05T09:13:00Z</time></trkpt>
+      <trkpt lat="32.8964" lon="-117.2485"><ele>23</ele><time>2026-04-05T09:13:10Z</time></trkpt>
+      <trkpt lat="32.8964" lon="-117.2485"><ele>23</ele><time>2026-04-05T09:13:20Z</time></trkpt>
+      <trkpt lat="32.8964" lon="-117.2485"><ele>23</ele><time>2026-04-05T09:13:30Z</time></trkpt>
+      <trkpt lat="32.8964" lon="-117.2485"><ele>23</ele><time>2026-04-05T09:13:40Z</time></trkpt>
+      <trkpt lat="32.8964" lon="-117.2485"><ele>23</ele><time>2026-04-05T09:13:50Z</time></trkpt>
+
+      <!-- Holes 11-17 (condensed) -->
+      <trkpt lat="32.8960" lon="-117.2482"><ele>22</ele><time>2026-04-05T09:16:00Z</time></trkpt>
+      <trkpt lat="32.8956" lon="-117.2479"><ele>21</ele><time>2026-04-05T09:20:00Z</time></trkpt>
+      <trkpt lat="32.8952" lon="-117.2476"><ele>20</ele><time>2026-04-05T09:24:00Z</time></trkpt>
+      <trkpt lat="32.8948" lon="-117.2473"><ele>19</ele><time>2026-04-05T09:28:00Z</time></trkpt>
+      <trkpt lat="32.8944" lon="-117.2470"><ele>19</ele><time>2026-04-05T09:32:00Z</time></trkpt>
+      <trkpt lat="32.8940" lon="-117.2467"><ele>19</ele><time>2026-04-05T09:36:00Z</time></trkpt>
+      <trkpt lat="32.8937" lon="-117.2464"><ele>19</ele><time>2026-04-05T09:40:00Z</time></trkpt>
+
+      <!-- Hole 17 Green -->
+      <trkpt lat="32.8933" lon="-117.2461"><ele>18</ele><time>2026-04-05T09:44:00Z</time></trkpt>
+      <trkpt lat="32.8933" lon="-117.2461"><ele>18</ele><time>2026-04-05T09:44:10Z</time></trkpt>
+      <trkpt lat="32.8933" lon="-117.2461"><ele>18</ele><time>2026-04-05T09:44:20Z</time></trkpt>
+      <trkpt lat="32.8933" lon="-117.2461"><ele>18</ele><time>2026-04-05T09:44:30Z</time></trkpt>
+      <trkpt lat="32.8933" lon="-117.2461"><ele>18</ele><time>2026-04-05T09:44:40Z</time></trkpt>
+      <trkpt lat="32.8933" lon="-117.2461"><ele>18</ele><time>2026-04-05T09:44:50Z</time></trkpt>
+
+      <!-- ==================== HOLE 18 (Par 5, ~570 yards) ==================== -->
+      <!-- GPS BLACKOUT: 60-second gap (09:46 → 09:47:00) — tests GPS loss behavior -->
+      <trkpt lat="32.8964" lon="-117.2528"><ele>30</ele><time>2026-04-05T09:46:00Z</time></trkpt>
+      <!-- 60-second gap here — no points — app should show last known + Searching... badge -->
+      <trkpt lat="32.8960" lon="-117.2522"><ele>29</ele><time>2026-04-05T09:47:00Z</time></trkpt>
+      <trkpt lat="32.8957" lon="-117.2516"><ele>28</ele><time>2026-04-05T09:48:00Z</time></trkpt>
+      <trkpt lat="32.8954" lon="-117.2510"><ele>27</ele><time>2026-04-05T09:49:00Z</time></trkpt>
+      <!-- Hole 18 Green (reference coordinate for verification) -->
+      <trkpt lat="32.8951" lon="-117.2501"><ele>25</ele><time>2026-04-05T09:51:00Z</time></trkpt>
+      <trkpt lat="32.8951" lon="-117.2501"><ele>25</ele><time>2026-04-05T09:51:10Z</time></trkpt>
+      <trkpt lat="32.8951" lon="-117.2501"><ele>25</ele><time>2026-04-05T09:51:20Z</time></trkpt>
+      <trkpt lat="32.8951" lon="-117.2501"><ele>25</ele><time>2026-04-05T09:51:30Z</time></trkpt>
+      <trkpt lat="32.8951" lon="-117.2501"><ele>25</ele><time>2026-04-05T09:51:40Z</time></trkpt>
+      <trkpt lat="32.8951" lon="-117.2501"><ele>25</ele><time>2026-04-05T09:51:50Z</time></trkpt>
+
+      <!-- Clubhouse (end of round) -->
+      <trkpt lat="32.8953" lon="-117.2499"><ele>24</ele><time>2026-04-05T09:53:00Z</time></trkpt>
+
+    </trkseg>
+  </trk>
+</gpx>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="THC Test Suite"
+     xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1
+                         http://www.topografix.com/GPX/1/1/gpx.xsd">
+
+  <!--
+    BoundaryEdges.gpx
+    6 separate track segments covering edge case GPS scenarios.
+
+    Segment 1 — OnGreenCenter
+      Coordinate exactly on the green center. Distance = 0 yards.
+      Expected: displays 0–3 yards (floating point), not negative.
+
+    Segment 2 — BeyondGreenBack
+      Coordinate 1 yard beyond the far back edge of the green.
+      Expected: distance shows 0–3 yards (clamped), not negative or "–1 yd".
+
+    Segment 3 — CartSpeed
+      Coordinates simulating 15 mph cart speed on cart path.
+      Expected: no auto-advance while cart is moving at speed.
+
+    Segment 4 — CartPathGreenToTee
+      Cart at 15 mph from hole 1 green to hole 2 tee in ~25 seconds.
+      Expected: auto-advance fires exactly once ONLY after tee proximity
+      is sustained for >3 seconds, not during the drive-by.
+
+    Segment 5 — OffCourse
+      User far outside the course boundary (1 km away).
+      Expected: no hole detection, no erroneous distance calculations.
+
+    Segment 6 — GPSLoss
+      60-second gap in updates (GPS signal lost, then resumes).
+      Expected:
+        - During blackout: shows last known distance + "Searching..." badge
+        - No crash during 60-second gap
+        - No false hole advance during blackout
+        - Resumes with updated distance after reconnect
+  -->
+
+  <metadata>
+    <name>Boundary Edge Cases — 6 Scenarios</name>
+    <desc>Edge case GPS scenarios. Load in Xcode simulator to verify crash-free behavior and correct distance handling at boundaries.</desc>
+    <time>2026-04-05T14:00:00Z</time>
+  </metadata>
+
+  <!-- ==================== Scenario 1: OnGreenCenter ==================== -->
+  <trk>
+    <name>OnGreenCenter</name>
+    <desc>User standing exactly on the green center. Distance should be 0-3 yards, never negative.</desc>
+    <trkseg>
+      <!-- Approach to green -->
+      <trkpt lat="32.8960" lon="-117.2450"><ele>21</ele><time>2026-04-05T14:00:00Z</time></trkpt>
+      <trkpt lat="32.8958" lon="-117.2448"><ele>20</ele><time>2026-04-05T14:00:30Z</time></trkpt>
+      <trkpt lat="32.8956" lon="-117.2446"><ele>20</ele><time>2026-04-05T14:01:00Z</time></trkpt>
+      <!-- Exactly on green center (Torrey Pines hole 7 green) -->
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T14:01:30Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T14:01:35Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T14:01:40Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T14:01:45Z</time></trkpt>
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T14:01:50Z</time></trkpt>
+    </trkseg>
+  </trk>
+
+  <!-- ==================== Scenario 2: BeyondGreenBack ==================== -->
+  <trk>
+    <name>BeyondGreenBack</name>
+    <desc>User 1 yard past the back edge of the green. Distance must be clamped to 0+, never negative.</desc>
+    <trkseg>
+      <!-- Approach from front of green -->
+      <trkpt lat="32.8953" lon="-117.2442"><ele>20</ele><time>2026-04-05T14:05:00Z</time></trkpt>
+      <!-- On green center -->
+      <trkpt lat="32.8955" lon="-117.2444"><ele>20</ele><time>2026-04-05T14:05:15Z</time></trkpt>
+      <!-- 1 yard PAST the back edge of green (walking through the green) -->
+      <!-- Back edge is approximately +0.00001 degrees north of center -->
+      <trkpt lat="32.8956" lon="-117.2444"><ele>20</ele><time>2026-04-05T14:05:30Z</time></trkpt>
+      <trkpt lat="32.8956" lon="-117.2444"><ele>20</ele><time>2026-04-05T14:05:35Z</time></trkpt>
+      <trkpt lat="32.8956" lon="-117.2444"><ele>20</ele><time>2026-04-05T14:05:40Z</time></trkpt>
+    </trkseg>
+  </trk>
+
+  <!-- ==================== Scenario 3: CartSpeed ==================== -->
+  <trk>
+    <name>CartSpeed</name>
+    <desc>15 mph cart movement. Auto-advance must NOT fire while cart is in motion at speed.</desc>
+    <trkseg>
+      <!-- Cart moving along fairway at ~15 mph = ~6.7 m/s -->
+      <!-- Coordinates spaced ~40m per 6-second interval ≈ 6.7 m/s = 15 mph -->
+      <trkpt lat="32.9010" lon="-117.2530"><ele>33</ele><time>2026-04-05T14:10:00Z</time></trkpt>
+      <trkpt lat="32.9006" lon="-117.2526"><ele>32</ele><time>2026-04-05T14:10:06Z</time></trkpt>
+      <trkpt lat="32.9002" lon="-117.2522"><ele>31</ele><time>2026-04-05T14:10:12Z</time></trkpt>
+      <trkpt lat="32.8998" lon="-117.2518"><ele>30</ele><time>2026-04-05T14:10:18Z</time></trkpt>
+      <trkpt lat="32.8994" lon="-117.2514"><ele>29</ele><time>2026-04-05T14:10:24Z</time></trkpt>
+      <trkpt lat="32.8990" lon="-117.2510"><ele>28</ele><time>2026-04-05T14:10:30Z</time></trkpt>
+      <trkpt lat="32.8986" lon="-117.2506"><ele>27</ele><time>2026-04-05T14:10:36Z</time></trkpt>
+      <trkpt lat="32.8982" lon="-117.2502"><ele>26</ele><time>2026-04-05T14:10:42Z</time></trkpt>
+    </trkseg>
+  </trk>
+
+  <!-- ==================== Scenario 4: CartPathGreenToTee ==================== -->
+  <trk>
+    <name>CartPathGreenToTee</name>
+    <desc>
+      Cart at 15 mph from hole 1 green to hole 2 tee in 25 seconds.
+      Auto-advance should fire EXACTLY ONCE only after tee proximity is
+      sustained for over 3 seconds — not during the drive-by.
+    </desc>
+    <trkseg>
+      <!-- Starting at hole 1 green -->
+      <trkpt lat="32.8998" lon="-117.2520"><ele>27</ele><time>2026-04-05T14:15:00Z</time></trkpt>
+      <!-- Rapid cart movement toward hole 2 tee area (~25 seconds total) -->
+      <trkpt lat="32.8999" lon="-117.2516"><ele>27</ele><time>2026-04-05T14:15:05Z</time></trkpt>
+      <trkpt lat="32.9001" lon="-117.2512"><ele>28</ele><time>2026-04-05T14:15:10Z</time></trkpt>
+      <trkpt lat="32.9003" lon="-117.2508"><ele>28</ele><time>2026-04-05T14:15:15Z</time></trkpt>
+      <!-- Passing near hole 2 tee at speed (should NOT trigger advance) -->
+      <trkpt lat="32.9005" lon="-117.2505"><ele>29</ele><time>2026-04-05T14:15:20Z</time></trkpt>
+      <!-- Arrived and parked at hole 2 tee box — sustained proximity begins -->
+      <trkpt lat="32.9007" lon="-117.2503"><ele>30</ele><time>2026-04-05T14:15:25Z</time></trkpt>
+      <!-- Staying at tee box 3+ seconds — auto-advance should fire now -->
+      <trkpt lat="32.9007" lon="-117.2503"><ele>30</ele><time>2026-04-05T14:15:28Z</time></trkpt>
+      <trkpt lat="32.9007" lon="-117.2503"><ele>30</ele><time>2026-04-05T14:15:31Z</time></trkpt>
+      <trkpt lat="32.9007" lon="-117.2503"><ele>30</ele><time>2026-04-05T14:15:34Z</time></trkpt>
+    </trkseg>
+  </trk>
+
+  <!-- ==================== Scenario 5: OffCourse ==================== -->
+  <trk>
+    <name>OffCourse</name>
+    <desc>User is 1+ km outside the course boundary. No hole detection should occur.</desc>
+    <trkseg>
+      <!-- Far from any known course coordinate at Torrey Pines (~1.5 km away) -->
+      <trkpt lat="32.8870" lon="-117.2450"><ele>10</ele><time>2026-04-05T14:20:00Z</time></trkpt>
+      <trkpt lat="32.8870" lon="-117.2450"><ele>10</ele><time>2026-04-05T14:20:05Z</time></trkpt>
+      <trkpt lat="32.8870" lon="-117.2450"><ele>10</ele><time>2026-04-05T14:20:10Z</time></trkpt>
+      <trkpt lat="32.8870" lon="-117.2450"><ele>10</ele><time>2026-04-05T14:20:15Z</time></trkpt>
+      <trkpt lat="32.8870" lon="-117.2450"><ele>10</ele><time>2026-04-05T14:20:20Z</time></trkpt>
+      <!-- Move further away -->
+      <trkpt lat="32.8860" lon="-117.2440"><ele>10</ele><time>2026-04-05T14:20:30Z</time></trkpt>
+      <trkpt lat="32.8850" lon="-117.2430"><ele>10</ele><time>2026-04-05T14:21:00Z</time></trkpt>
+    </trkseg>
+  </trk>
+
+  <!-- ==================== Scenario 6: GPSLoss ==================== -->
+  <trk>
+    <name>GPSLoss</name>
+    <desc>
+      60-second GPS signal blackout (14:30:00 → 14:31:00), then signal resumes.
+      During blackout: app shows last known distance + Searching... badge.
+      After reconnect: distance updates to current position.
+      No crash, no false hole advance during blackout.
+    </desc>
+    <trkseg>
+      <!-- Active GPS — walking toward Hole 5 green -->
+      <trkpt lat="32.8980" lon="-117.2470"><ele>22</ele><time>2026-04-05T14:29:00Z</time></trkpt>
+      <trkpt lat="32.8978" lon="-117.2468"><ele>22</ele><time>2026-04-05T14:29:10Z</time></trkpt>
+      <trkpt lat="32.8976" lon="-117.2466"><ele>22</ele><time>2026-04-05T14:29:20Z</time></trkpt>
+      <trkpt lat="32.8975" lon="-117.2465"><ele>22</ele><time>2026-04-05T14:29:30Z</time></trkpt>
+      <!-- Last known position before signal loss -->
+      <trkpt lat="32.8974" lon="-117.2464"><ele>22</ele><time>2026-04-05T14:30:00Z</time></trkpt>
+
+      <!-- *** 60-SECOND GPS BLACKOUT *** -->
+      <!-- No trackpoints from 14:30:00 to 14:31:00 -->
+      <!-- App must: show last known distance, display Searching... badge, not crash -->
+
+      <!-- GPS signal resumes — user has walked further during blackout -->
+      <trkpt lat="32.8972" lon="-117.2462"><ele>22</ele><time>2026-04-05T14:31:00Z</time></trkpt>
+      <trkpt lat="32.8971" lon="-117.2461"><ele>22</ele><time>2026-04-05T14:31:05Z</time></trkpt>
+      <trkpt lat="32.8970" lon="-117.2460"><ele>22</ele><time>2026-04-05T14:31:10Z</time></trkpt>
+      <!-- Arrive at green — distances should now update correctly -->
+      <trkpt lat="32.8968" lon="-117.2458"><ele>21</ele><time>2026-04-05T14:31:30Z</time></trkpt>
+      <trkpt lat="32.8968" lon="-117.2458"><ele>21</ele><time>2026-04-05T14:31:35Z</time></trkpt>
+      <trkpt lat="32.8968" lon="-117.2458"><ele>21</ele><time>2026-04-05T14:31:40Z</time></trkpt>
+    </trkseg>
+  </trk>
+
+</gpx>

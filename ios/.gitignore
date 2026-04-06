@@ -1,0 +1,43 @@
+# Xcode build artifacts
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdata/
+xcuserdata/
+
+# Xcode user-specific settings
+*.xcscheme
+!*.xcscheme
+*.xcworkspace/xcuserdata/
+
+# CocoaPods (not used, but guard anyway)
+Pods/
+Podfile.lock
+
+# Swift Package Manager resolved file (committed intentionally — remove this line if you want to commit it)
+# Package.resolved
+
+# Secrets — never commit real secrets
+Secrets.plist
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Instruments
+*.trace
+
+# TestFlight / archiving
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Simulators
+*.xcresult
+
+# fastlane (if added later)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output

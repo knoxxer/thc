@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+
+    <!-- ============================================================
+         Location Permissions
+         Required by M7.10 (GPS screen) and M14.8 (privacy disclosures)
+         ============================================================ -->
+
+    <!-- Shown to user when app requests location access for the first time (foreground) -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>THC uses your location to show distances to the green while you play golf.</string>
+
+    <!-- Shown when app later requests upgrade to always-on background location -->
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>THC can track your location in the background to automatically advance holes and keep distances accurate even when you switch apps.</string>
+
+    <!-- ============================================================
+         Background Modes
+         Required by M7.10 (CoreLocation background) and M14.2 (BGAppRefreshTask)
+         ============================================================ -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <!-- Allows CoreLocation to deliver updates while app is in the background -->
+        <string>location</string>
+        <!-- Allows BGAppRefreshTask to refresh standings + course data -->
+        <string>fetch</string>
+    </array>
+
+    <!-- ============================================================
+         Background Task Identifiers
+         Required by M14.3
+         Register every BGTask identifier here before scheduling it.
+         ============================================================ -->
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+        <string>com.thc.app.refresh.standings</string>
+        <string>com.thc.app.refresh.courses</string>
+    </array>
+
+    <!-- ============================================================
+         URL Schemes — OAuth redirect
+         Required by M3.3 (Supabase OAuth callback)
+         The redirect URI registered in Supabase must match exactly:
+           com.thc.app://login-callback
+         ============================================================ -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.thc.app</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>com.thc.app</string>
+            </array>
+        </dict>
+    </array>
+
+</dict>
+</plist>

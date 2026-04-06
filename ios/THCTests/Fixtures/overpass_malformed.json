@@ -1,0 +1,5 @@
+{ this is not valid JSON !!!
+  "elements": [
+    {
+      broken_key: "broken_value"
+      "type": "way"

@@ -1,0 +1,27 @@
+{
+  "data": [
+    {
+      "id": 12345,
+      "club_name": "Torrey Pines Golf Course",
+      "course_name": "South Course",
+      "city": "La Jolla",
+      "state": "CA",
+      "country": "USA",
+      "latitude": 32.8990,
+      "longitude": -117.2519
+    },
+    {
+      "id": 12346,
+      "club_name": "Torrey Pines Golf Course",
+      "course_name": "North Course",
+      "city": "La Jolla",
+      "state": "CA",
+      "country": "USA",
+      "latitude": 32.9020,
+      "longitude": -117.2535
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "per_page": 20
+}
