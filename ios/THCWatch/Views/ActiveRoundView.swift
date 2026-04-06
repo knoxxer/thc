@@ -157,7 +157,7 @@ struct ActiveRoundView: View {
     private func checkBatteryLevel() {
         WKInterfaceDevice.current().isBatteryMonitoringEnabled = true
         let level = WKInterfaceDevice.current().batteryLevel
-        if level > 0 && level < 0.30 {
+        if level > 0 && level <= 0.30 {
             showBatteryWarning = true
         }
     }

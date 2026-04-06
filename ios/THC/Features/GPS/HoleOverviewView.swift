@@ -45,7 +45,7 @@ struct HoleOverviewView: View {
             tapPoint = nil
         }
         .sheet(isPresented: $showScoreEntry) {
-            if let detail = roundManager.courseDetail {
+            if roundManager.courseDetail != nil {
                 NavigationStack {
                     LiveScoringView(roundManager: roundManager)
                         .toolbar {

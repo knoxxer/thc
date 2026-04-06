@@ -35,6 +35,7 @@
          ============================================================ -->
     <key>BGTaskSchedulerPermittedIdentifiers</key>
     <array>
+        <string>com.thc.app.refresh</string>
         <string>com.thc.app.refresh.standings</string>
         <string>com.thc.app.refresh.courses</string>
     </array>
