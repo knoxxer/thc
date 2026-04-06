@@ -268,6 +268,15 @@ final class MockOfflineStorage: OfflineStorageProviding, @unchecked Sendable {
         }
     }
 
+    func finalizeRound(id: UUID, grossScore: Int, courseHandicap: Int, points: Int) throws {
+        guard let round = rounds.first(where: { $0.id == id }) else {
+            throw OfflineStorageError.roundNotFound(id)
+        }
+        round.grossScore = grossScore
+        round.courseHandicap = courseHandicap
+        round.points = points
+    }
+
     func saveHoleScore(_ score: LocalHoleScore, roundId: UUID) throws {
         holeScoreSaveCallCount += 1
     }

@@ -102,6 +102,27 @@ final class RoundManager: @unchecked Sendable {
         currentHole = 1
         localRoundId = UUID()
 
+        // Persist a stub round immediately so that saveHoleScore calls during the round
+        // can append to an existing LocalRound. Final score fields are updated in finishRound().
+        let dateFmt = DateFormatter()
+        dateFmt.dateFormat = "yyyy-MM-dd"
+        let stub = LocalRound(
+            id: localRoundId,
+            playerId: player.id,
+            seasonId: season.id,
+            playedAt: dateFmt.string(from: Date()),
+            courseName: courseDetail?.course.name ?? "",
+            par: courseDetail?.course.par ?? 72,
+            grossScore: 0,
+            courseHandicap: 0,
+            points: 0,
+            source: "app",
+            syncedToSupabase: false,
+            holeScores: [],
+            createdAt: Date()
+        )
+        try? offlineStorage.saveRound(stub)
+
         locationManager.startRoundTracking()
         startAutoAdvanceTask()
 
@@ -178,10 +199,6 @@ final class RoundManager: @unchecked Sendable {
         locationManager.stopRoundTracking()
         locationTask?.cancel()
 
-        let dateFmt = DateFormatter()
-        dateFmt.dateFormat = "yyyy-MM-dd"
-        let playedAtString = dateFmt.string(from: Date())
-
         let par = courseDetail?.course.par ?? 72
         let grossScore = totalStrokes
         let courseHandicap = player.handicapIndex.map { Int($0) } ?? 0
@@ -189,11 +206,23 @@ final class RoundManager: @unchecked Sendable {
         let netVsPar = netScore - par
         let points = PointsCalculator.calculatePoints(netVsPar: netVsPar)
 
+        // Update the stub round that was saved in startRound() with the final computed values.
+        // The stub already has all hole scores appended via saveHoleScore during play.
+        try offlineStorage.finalizeRound(
+            id: localRoundId,
+            grossScore: grossScore,
+            courseHandicap: courseHandicap,
+            points: points
+        )
+
+        // Build a return value from the now-finalised data (does not insert a second row).
+        let dateFmt = DateFormatter()
+        dateFmt.dateFormat = "yyyy-MM-dd"
         let localRound = LocalRound(
             id: localRoundId,
             playerId: player.id,
             seasonId: season.id,
-            playedAt: playedAtString,
+            playedAt: dateFmt.string(from: Date()),
             courseName: courseDetail?.course.name ?? "",
             par: par,
             grossScore: grossScore,
@@ -205,7 +234,6 @@ final class RoundManager: @unchecked Sendable {
             createdAt: Date()
         )
 
-        try offlineStorage.saveRound(localRound)
         _ = try? await syncService.syncPendingRounds()
 
         // Remove live round row

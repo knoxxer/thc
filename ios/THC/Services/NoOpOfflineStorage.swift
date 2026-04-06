@@ -13,5 +13,6 @@ final class NoOpOfflineStorage: OfflineStorageProviding, @unchecked Sendable {
     func cacheCourse(_ course: CourseData, holes: [CourseHole]) throws {}
     func getCachedCourse(id: UUID) -> CachedCourse? { nil }
     func getNearbyCachedCourses(lat: Double, lon: Double, radiusKm: Double) -> [CachedCourse] { [] }
+    func finalizeRound(id: UUID, grossScore: Int, courseHandicap: Int, points: Int) throws {}
     func saveHoleScore(_ score: LocalHoleScore, roundId: UUID) throws {}
 }

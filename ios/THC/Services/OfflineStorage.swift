@@ -208,6 +208,11 @@ protocol OfflineStorageProviding: Sendable {
     /// Return all cached courses whose center is within `radiusKm` of the given coordinate.
     func getNearbyCachedCourses(lat: Double, lon: Double, radiusKm: Double) -> [CachedCourse]
 
+    /// Update the final computed fields on an existing local round.
+    /// Called at the end of a live round when gross score, handicap, and points are known.
+    /// Throws `OfflineStorageError.roundNotFound` if no `LocalRound` with `roundId` exists.
+    func finalizeRound(id: UUID, grossScore: Int, courseHandicap: Int, points: Int) throws
+
     // MARK: Hole scores
 
     /// Append a hole score to an existing local round.
@@ -317,6 +322,21 @@ final class OfflineStorage: OfflineStorageProviding, @unchecked Sendable {
             let distanceMeters = DistanceCalculator.distanceInMeters(from: from, to: to)
             return distanceMeters <= radiusMeters
         }
+    }
+
+    // MARK: - Finalize Round
+
+    func finalizeRound(id: UUID, grossScore: Int, courseHandicap: Int, points: Int) throws {
+        let descriptor = FetchDescriptor<LocalRound>(
+            predicate: #Predicate { $0.id == id }
+        )
+        guard let round = try context.fetch(descriptor).first else {
+            throw OfflineStorageError.roundNotFound(id)
+        }
+        round.grossScore = grossScore
+        round.courseHandicap = courseHandicap
+        round.points = points
+        try context.save()
     }
 
     // MARK: - Hole Scores
