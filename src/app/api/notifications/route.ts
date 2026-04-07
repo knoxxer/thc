@@ -18,14 +18,14 @@ async function getAuthenticatedPlayer(supabase: Awaited<ReturnType<typeof create
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!user?.email) {
     return { player: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
 
   const { data: player } = await supabase
     .from("players")
     .select(fields)
-    .eq("auth_user_id", user.id)
+    .eq("email", user.email)
     .single();
 
   if (!player) {

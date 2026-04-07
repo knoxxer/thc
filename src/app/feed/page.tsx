@@ -25,11 +25,11 @@ export default async function FeedPage() {
 
   // Parallelize player + season lookups (independent of each other)
   const [playerResult, seasonResult] = await Promise.all([
-    user
+    user?.email
       ? supabase
           .from("players")
           .select("id")
-          .eq("auth_user_id", user.id)
+          .eq("email", user.email)
           .single()
       : Promise.resolve({ data: null }),
     supabase
