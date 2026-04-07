@@ -273,6 +273,11 @@ final class RoundManager: @unchecked Sendable {
         return []
     }
 
+    /// The user's current GPS coordinate, or nil when location is unavailable.
+    var userCoordinate: CLLocationCoordinate2D? {
+        locationManager.coordinate
+    }
+
     func distanceTo(_ coordinate: CLLocationCoordinate2D) -> Double {
         guard let current = locationManager.coordinate else { return 0 }
         return DistanceCalculator.distanceInYards(from: current, to: coordinate)

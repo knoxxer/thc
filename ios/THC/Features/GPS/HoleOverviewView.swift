@@ -69,6 +69,12 @@ struct HoleOverviewView: View {
                 // User location
                 UserAnnotation()
 
+                // Distance line: user → green
+                if let user = roundManager.userCoordinate, let green = greenCoord {
+                    MapPolyline(coordinates: [user, green])
+                        .stroke(.green.opacity(0.7), lineWidth: 2)
+                }
+
                 // Green pin
                 if let green = greenCoord {
                     Annotation("Green", coordinate: green) {

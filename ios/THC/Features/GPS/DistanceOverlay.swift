@@ -93,16 +93,15 @@ struct DistanceOverlay: View {
     private var greenDistanceRow: some View {
         Group {
             if let g = greenDistances {
+                // Always show Front / Center / Back columns.
+                // Front and Back are "—" when no green polygon (OSM data) is available;
+                // Center is always a live distance derived from the green pin coordinate.
                 HStack(spacing: 0) {
-                    if let front = g.front {
-                        distanceBlock(label: "Front", yards: front, style: .secondary)
-                        Spacer()
-                    }
+                    distanceBlock(label: "Front", yards: g.front, style: .secondary)
+                    Spacer()
                     distanceBlock(label: "Center", yards: g.center, style: .primary)
-                    if let back = g.back {
-                        Spacer()
-                        distanceBlock(label: "Back", yards: back, style: .secondary)
-                    }
+                    Spacer()
+                    distanceBlock(label: "Back", yards: g.back, style: .secondary)
                 }
             } else {
                 noGreenDataRow
@@ -110,13 +109,21 @@ struct DistanceOverlay: View {
         }
     }
 
-    private func distanceBlock(label: String, yards: Double, style: DistanceStyle) -> some View {
+    /// Renders a distance column. When `yards` is nil, shows "—" in place of the number.
+    private func distanceBlock(label: String, yards: Double?, style: DistanceStyle) -> some View {
         VStack(spacing: 2) {
-            Text(String(format: "%.0f", yards))
-                .font(style == .primary
-                    ? .system(size: 36, weight: .bold, design: .rounded).monospacedDigit()
-                    : .system(size: 24, weight: .semibold, design: .rounded).monospacedDigit())
-                .foregroundStyle(style == .primary ? .primary : .secondary)
+            Group {
+                if let yards = yards {
+                    Text(String(format: "%.0f", yards))
+                } else {
+                    Text("—")
+                }
+            }
+            .font(style == .primary
+                ? .system(size: 36, weight: .bold, design: .rounded).monospacedDigit()
+                : .system(size: 24, weight: .semibold, design: .rounded).monospacedDigit())
+            .foregroundStyle(style == .primary ? .primary : .secondary)
+
             Text(label)
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.secondary)
@@ -130,7 +137,7 @@ struct DistanceOverlay: View {
         HStack(spacing: 8) {
             Image(systemName: "mappin.slash")
                 .foregroundStyle(.orange)
-            Text("No green data — tap to save")
+            Text("No green location saved for this hole")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
