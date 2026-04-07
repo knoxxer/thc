@@ -1,13 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
 import { lookupGolfer, getScores } from "./client";
 import { calculatePoints } from "../points";
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
+import { getServiceClient } from "../supabase/service";
 
 export interface SyncResult {
   player: string;

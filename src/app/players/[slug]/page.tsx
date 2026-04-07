@@ -2,13 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Player, Round, Season } from "@/lib/types";
+import { formatVsPar } from "@/lib/format";
 
 export const revalidate = 60;
-
-function formatNetVsPar(n: number) {
-  if (n === 0) return "E";
-  return n > 0 ? `+${n}` : `${n}`;
-}
 
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("en-US", {
@@ -145,7 +141,7 @@ export default async function PlayerPage({
                       <span>{formatDate(round.played_at)}</span>
                       <span>Gross {round.gross_score}</span>
                       <span>Net {round.net_score}</span>
-                      <span>{formatNetVsPar(round.net_vs_par)}</span>
+                      <span>{formatVsPar(round.net_vs_par)}</span>
                     </div>
                   </div>
                 );
@@ -193,7 +189,7 @@ export default async function PlayerPage({
                           {round.net_score}
                         </td>
                         <td className="py-3 px-4 text-center text-sm">
-                          {formatNetVsPar(round.net_vs_par)}
+                          {formatVsPar(round.net_vs_par)}
                         </td>
                         <td className="py-3 px-4 text-right font-bold text-gold">
                           {round.points}

@@ -59,3 +59,82 @@ export interface SeasonStanding {
   best_round_points: number;
   best_net_vs_par: number;
 }
+
+export interface RoundReaction {
+  id: string;
+  round_id: string;
+  player_id: string;
+  emoji: string;
+  comment: string | null;
+  created_at: string;
+}
+
+export interface RoundComment {
+  id: string;
+  round_id: string;
+  player_id: string;
+  body: string;
+  created_at: string;
+}
+
+export interface FeedRound extends Round {
+  player: Pick<Player, "id" | "display_name" | "slug" | "avatar_url">;
+}
+
+export interface UpcomingRound {
+  id: string;
+  player_id: string;
+  course_name: string;
+  tee_time: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface UpcomingRoundRsvp {
+  id: string;
+  upcoming_round_id: string;
+  player_id: string;
+  status: "in" | "maybe" | "out";
+  created_at: string;
+}
+
+export interface Notification {
+  id: string;
+  player_id: string;
+  type: "new_round" | "reaction" | "comment" | "rsvp" | "upcoming_round";
+  title: string;
+  body: string | null;
+  link: string | null;
+  is_read: boolean;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface Milestone {
+  type: "season_best" | "rank_change" | "streak" | "first_round" | "eligibility" | "points_milestone";
+  title: string;
+  description: string;
+  playerName: string;
+  playerSlug: string;
+  timestamp: string;
+}
+
+export interface CommentWithPlayer extends RoundComment {
+  player_name: string;
+}
+
+export interface RsvpWithPlayer extends UpcomingRoundRsvp {
+  player_name: string;
+}
+
+export interface UpcomingRoundWithOrganizer extends UpcomingRound {
+  organizer_name: string;
+}
+
+export interface WeeklyRecapData {
+  weekLabel: string;
+  roundsPosted: number;
+  bestRound: { playerName: string; courseName: string; points: number } | null;
+  totalPoints: number;
+  biggestMover: { playerName: string; rank: number } | null;
+}

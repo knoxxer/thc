@@ -2,20 +2,15 @@
 
 import Link from "next/link";
 import { SeasonStanding } from "@/lib/types";
-import { useDesign } from "@/components/ui/DesignToggle";
+import { formatVsPar } from "@/lib/format";
 
-function formatNetVsPar(n: number) {
-  if (n === 0) return "E";
-  return n > 0 ? `+${n}` : `${n}`;
-}
-
-function RankBadge({ rank, v2 }: { rank: number; v2: boolean }) {
+function RankBadge({ rank }: { rank: number }) {
   if (rank === 1)
     return <span className="text-gold font-bold text-lg">1st</span>;
   if (rank === 2)
     return <span className="text-gray-300 font-semibold">2nd</span>;
   if (rank === 3)
-    return <span className={`${v2 ? "text-amber-500" : "text-amber-700"} font-semibold`}>3rd</span>;
+    return <span className="text-amber-500 font-semibold">3rd</span>;
   return <span className="text-muted">{rank}th</span>;
 }
 
@@ -24,8 +19,6 @@ export default function LeaderboardTable({
 }: {
   standings: SeasonStanding[];
 }) {
-  const { design } = useDesign();
-  const v2 = design === "v2";
 
   if (standings.length === 0) {
     return (
@@ -68,7 +61,7 @@ export default function LeaderboardTable({
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 text-center">
-                  <RankBadge rank={rank} v2={v2} />
+                  <RankBadge rank={rank} />
                 </div>
                 <div>
                   <span className={`font-semibold ${isLeader ? "text-gold" : ""}`}>
@@ -117,7 +110,7 @@ export default function LeaderboardTable({
                   }`}
                 >
                   <td className="py-4 px-4">
-                    <RankBadge rank={rank} v2={v2} />
+                    <RankBadge rank={rank} />
                   </td>
                   <td className="py-4 px-4">
                     <Link
@@ -141,7 +134,7 @@ export default function LeaderboardTable({
                     {s.handicap_index != null ? s.handicap_index : "—"}
                   </td>
                   <td className="py-4 px-4 text-center text-muted tabular-nums hidden md:table-cell">
-                    {formatNetVsPar(s.best_net_vs_par)}{" "}
+                    {formatVsPar(s.best_net_vs_par)}{" "}
                     <span className="text-muted">({s.best_round_points}pts)</span>
                   </td>
                   <td className="py-4 px-4 text-right">
