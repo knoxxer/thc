@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THC Social Features — Visual Mockups</title>
+<style>
+  :root {
+    --bg: #0a1a0f;
+    --fg: #e8efe8;
+    --accent: #1A4332;
+    --accent-light: #2E7D32;
+    --gold: #C5A059;
+    --gold-light: #dbb96e;
+    --surface: #122218;
+    --surface-light: #1c3324;
+    --muted: #7a9a80;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.5; }
+  .page { max-width: 520px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; color: white; }
+  h2 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold); margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--surface-light); }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+
+  /* Nav */
+  .nav { background: rgba(26,67,50,0.9); border-bottom: 1px solid var(--surface-light); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; border-radius: 12px; margin-bottom: 24px; }
+  .nav-left { display: flex; align-items: center; gap: 10px; }
+  .nav-logo { width: 36px; height: 36px; background: var(--accent-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .nav-title { font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; font-size: 14px; color: white; }
+  .nav-links { display: flex; gap: 16px; font-size: 13px; }
+  .nav-links a { color: rgba(255,255,255,0.6); text-decoration: none; }
+  .nav-links a.active { color: white; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .bell { position: relative; color: rgba(255,255,255,0.7); font-size: 18px; cursor: pointer; }
+  .bell-badge { position: absolute; top: -4px; right: -6px; background: #ef4444; color: white; font-size: 9px; font-weight: 700; width: 15px; height: 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .btn-gold { background: var(--gold); color: var(--accent); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--surface-light); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+
+  /* Feed Card */
+  .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .avatar { width: 36px; height: 36px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .feed-meta { flex: 1; }
+  .feed-name { font-size: 13px; font-weight: 600; color: white; }
+  .feed-course { font-size: 12px; color: var(--muted); }
+  .feed-date { font-size: 11px; color: var(--muted); }
+  .score-row { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-bottom: 12px; }
+  .score-row .sep { color: var(--muted); }
+  .score-row .dim { color: rgba(255,255,255,0.6); }
+  .score-row .par { color: rgba(255,255,255,0.85); }
+  .score-row .pts { color: var(--gold); font-weight: 700; }
+
+  /* Reactions */
+  .reactions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .reaction-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 13px; border: 1px solid var(--surface-light); background: rgba(28,51,36,0.5); color: rgba(255,255,255,0.6); }
+  .reaction-pill.mine { border-color: rgba(197,160,89,0.5); background: rgba(197,160,89,0.15); color: white; }
+  .reaction-pill .count { font-size: 11px; }
+  .reaction-add { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--surface-light); background: rgba(28,51,36,0.5); color: rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; }
+  .emoji-picker { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--surface-light); border-radius: 8px; padding: 6px; margin-top: 6px; }
+  .emoji-picker span { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 4px; cursor: pointer; }
+  .emoji-picker span:hover { background: var(--surface-light); }
+
+  /* Comments */
+  .comments { margin-top: 10px; }
+  .comment { font-size: 13px; margin-bottom: 4px; }
+  .comment .name { color: rgba(255,255,255,0.75); font-weight: 500; }
+  .comment .text { color: rgba(255,255,255,0.55); margin: 0 4px; }
+  .comment .time { color: var(--muted); font-size: 11px; }
+  .comment-input { display: flex; gap: 8px; margin-top: 8px; }
+  .comment-input input { flex: 1; background: rgba(28,51,36,0.3); border: 1px solid var(--surface-light); border-radius: 8px; padding: 6px 10px; font-size: 12px; color: white; outline: none; }
+  .comment-input input::placeholder { color: rgba(122,154,128,0.5); }
+  .comment-input button { color: var(--gold); font-size: 12px; font-weight: 600; background: none; border: none; cursor: pointer; }
+
+  /* Upcoming Round */
+  .upcoming-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-light); margin-bottom: 8px; }
+  .upcoming-title { font-size: 17px; font-weight: 600; color: white; margin-bottom: 2px; }
+  .upcoming-time { font-size: 13px; color: var(--muted); margin-bottom: 2px; }
+  .upcoming-poster { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .upcoming-notes { font-size: 13px; color: rgba(255,255,255,0.6); font-style: italic; margin-bottom: 12px; }
+  .rsvp-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .rsvp-btn { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; border: 1px solid var(--surface-light); background: rgba(28,51,36,0.5); color: rgba(255,255,255,0.5); cursor: pointer; }
+  .rsvp-btn.active-in { background: rgba(22,163,74,0.2); border-color: rgba(22,163,74,0.4); color: #86efac; }
+  .rsvp-btn.active-maybe { background: rgba(202,138,4,0.2); border-color: rgba(202,138,4,0.4); color: #fde047; }
+  .going-list { font-size: 11px; color: var(--muted); }
+  .going-list .green { color: #4ade80; }
+  .going-list .yellow { color: #facc15; }
+  .card.upcoming { border-color: rgba(46,125,50,0.3); }
+
+  /* Post Upcoming */
+  .post-upcoming { border-style: dashed; text-align: center; color: var(--muted); font-size: 13px; cursor: pointer; padding: 14px; }
+  .post-upcoming:hover { color: white; border-color: rgba(46,125,50,0.4); }
+
+  /* Milestone */
+  .card.milestone { background: rgba(197,160,89,0.03); border-color: rgba(197,160,89,0.25); }
+  .milestone-row { display: flex; gap: 10px; align-items: flex-start; }
+  .milestone-emoji { font-size: 20px; margin-top: 1px; }
+  .milestone-title { font-size: 13px; font-weight: 700; color: var(--gold); }
+  .milestone-desc { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+  .milestone-link { font-size: 11px; color: rgba(197,160,89,0.6); margin-top: 4px; display: inline-block; }
+
+  /* Weekly Recap */
+  .card.recap { border-color: rgba(46,125,50,0.2); }
+  .recap-title { font-size: 13px; font-weight: 700; color: var(--accent-light); margin-bottom: 10px; }
+  .recap-line { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 4px; }
+  .recap-line .val { color: white; font-weight: 500; }
+  .recap-line .gold { color: var(--gold); font-weight: 500; }
+
+  /* Notification Dropdown */
+  .notif-dropdown { background: var(--surface); border: 1px solid var(--surface-light); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .notif-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--surface-light); }
+  .notif-header span { font-size: 13px; font-weight: 600; color: white; }
+  .notif-header button { font-size: 11px; color: var(--gold); background: none; border: none; cursor: pointer; }
+  .notif-item { padding: 10px 14px; border-bottom: 1px solid rgba(28,51,36,0.5); display: flex; gap: 8px; align-items: flex-start; }
+  .notif-item.unread { background: rgba(26,67,50,0.2); }
+  .notif-item:hover { background: rgba(28,51,36,0.3); }
+  .notif-icon { font-size: 13px; margin-top: 2px; }
+  .notif-content { flex: 1; }
+  .notif-text { font-size: 13px; color: rgba(255,255,255,0.85); }
+  .notif-body { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .notif-time { font-size: 10px; color: var(--muted); white-space: nowrap; margin-top: 2px; }
+
+  .section-note { font-size: 11px; color: var(--muted); background: var(--surface); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; border-left: 3px solid var(--gold); }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ========== NAV ========== -->
+<h2>1. Navigation — Feed Link + Notification Bell</h2>
+<div class="section-note">Feed added between Leaderboard and Rules. Bell icon with unread badge shown when logged in.</div>
+
+<div class="nav">
+  <div class="nav-left">
+    <div class="nav-logo">⛳</div>
+    <span class="nav-title">The Homie Cup</span>
+  </div>
+  <div class="nav-links">
+    <a href="#">Leaderboard</a>
+    <a href="#" class="active">Feed</a>
+    <a href="#">Rules</a>
+    <a href="#">Players</a>
+  </div>
+  <div class="nav-right">
+    <div class="bell">🔔<div class="bell-badge">3</div></div>
+    <button class="btn-gold">Post Score</button>
+  </div>
+</div>
+
+<!-- ========== NOTIFICATION DROPDOWN ========== -->
+<h2>2. Notification Bell Dropdown</h2>
+<div class="section-note">Polls every 30s. Shows unread count badge. Click to open dropdown. "Mark all read" clears badge.</div>
+
+<div class="notif-dropdown">
+  <div class="notif-header">
+    <span>Notifications</span>
+    <button>Mark all read</button>
+  </div>
+  <div class="notif-item unread">
+    <span class="notif-icon">🔥</span>
+    <div class="notif-content">
+      <div class="notif-text">Mike reacted 🔥 to your round</div>
+    </div>
+    <span class="notif-time">2m</span>
+  </div>
+  <div class="notif-item unread">
+    <span class="notif-icon">💬</span>
+    <div class="notif-content">
+      <div class="notif-text">Jake commented on your round</div>
+      <div class="notif-body">"absolute heater bro"</div>
+    </div>
+    <span class="notif-time">15m</span>
+  </div>
+  <div class="notif-item unread">
+    <span class="notif-icon">📅</span>
+    <div class="notif-content">
+      <div class="notif-text">Sarah is in for Saturday at Torrey Pines</div>
+    </div>
+    <span class="notif-time">1h</span>
+  </div>
+  <div class="notif-item">
+    <span class="notif-icon">⛳</span>
+    <div class="notif-content">
+      <div class="notif-text">Dan posted 91 at Riviera — 5 pts</div>
+    </div>
+    <span class="notif-time">3h</span>
+  </div>
+  <div class="notif-item">
+    <span class="notif-icon">⛳</span>
+    <div class="notif-content">
+      <div class="notif-text">Mike posted 82 at Torrey Pines — 10 pts</div>
+    </div>
+    <span class="notif-time">1d</span>
+  </div>
+</div>
+
+<!-- ========== UPCOMING ROUND ========== -->
+<h2>3. Post Upcoming Round</h2>
+<div class="section-note">Collapsible form. Friends can RSVP (In / Maybe / Can't). Shows who's going.</div>
+
+<div class="card post-upcoming">+ Post an upcoming round</div>
+
+<div class="card upcoming">
+  <div class="upcoming-label">Upcoming</div>
+  <div class="upcoming-title">Torrey Pines South</div>
+  <div class="upcoming-time">Saturday, Apr 12 · 8:00 AM</div>
+  <div class="upcoming-poster">Posted by Jake</div>
+  <div class="upcoming-notes">"Walking, room for 2 more"</div>
+  <div class="rsvp-row">
+    <button class="rsvp-btn active-in">I'm In ✓</button>
+    <button class="rsvp-btn active-maybe">Maybe</button>
+    <button class="rsvp-btn">Can't</button>
+  </div>
+  <div class="going-list"><span class="green">3 going</span>: Jake, Mike, Sarah</div>
+  <div class="going-list" style="margin-top: 2px;"><span class="yellow">1 maybe</span>: Dan</div>
+</div>
+
+<!-- ========== WEEKLY RECAP ========== -->
+<h2>4. Weekly Recap Card</h2>
+<div class="section-note">Auto-generated summary of the past 7 days. Shows rounds posted, best round, most active, total points.</div>
+
+<div class="card recap">
+  <div class="recap-title">📊 Week in Review (Mar 31 – Apr 6)</div>
+  <div class="recap-line"><span class="val">7</span> rounds posted</div>
+  <div class="recap-line">Best: <span class="val">Jake</span> — Torrey Pines South (<span class="gold">12 pts</span>)</div>
+  <div class="recap-line">Most active: <span class="val">Mike</span> → #2</div>
+  <div class="recap-line"><span class="gold">42</span> total points earned</div>
+</div>
+
+<!-- ========== MILESTONES ========== -->
+<h2>5. Auto Milestones</h2>
+<div class="section-note">Computed from existing data. No DB table — derived each time the feed loads. Types: season best, streaks, eligibility, first round, points milestones.</div>
+
+<div class="card milestone">
+  <div class="milestone-row">
+    <span class="milestone-emoji">🏆</span>
+    <div>
+      <div class="milestone-title">Season Best Round!</div>
+      <div class="milestone-desc">Jake posted 69 net at Torrey Pines South — 13 pts</div>
+      <a class="milestone-link" href="#">View profile →</a>
+    </div>
+  </div>
+</div>
+
+<div class="card milestone">
+  <div class="milestone-row">
+    <span class="milestone-emoji">🔥</span>
+    <div>
+      <div class="milestone-title">4-Week Streak!</div>
+      <div class="milestone-desc">Mike has posted a round 4 weeks in a row</div>
+      <a class="milestone-link" href="#">View profile →</a>
+    </div>
+  </div>
+</div>
+
+<div class="card milestone">
+  <div class="milestone-row">
+    <span class="milestone-emoji">✅</span>
+    <div>
+      <div class="milestone-title">Now Eligible!</div>
+      <div class="milestone-desc">Dan hit 5 rounds and is now eligible for the standings</div>
+      <a class="milestone-link" href="#">View profile →</a>
+    </div>
+  </div>
+</div>
+
+<div class="card milestone">
+  <div class="milestone-row">
+    <span class="milestone-emoji">💯</span>
+    <div>
+      <div class="milestone-title">100 Points!</div>
+      <div class="milestone-desc">Jake hit 103 total points this season</div>
+      <a class="milestone-link" href="#">View profile →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ========== FEED CARDS ========== -->
+<h2>6. Activity Feed — Round Cards with Reactions + Comments</h2>
+<div class="section-note">Chronological timeline ordered by created_at. Each card shows player, course, score breakdown, emoji reactions, and comments.</div>
+
+<!-- Card 1: Good round with reactions + comments -->
+<div class="card">
+  <div class="feed-header">
+    <div class="avatar">J</div>
+    <div class="feed-meta">
+      <div class="feed-name">Jake</div>
+      <div class="feed-course">Torrey Pines South</div>
+    </div>
+    <span class="feed-date">Apr 5</span>
+  </div>
+  <div class="score-row">
+    <span class="dim">82 gross</span>
+    <span class="sep">·</span>
+    <span class="dim">72 net</span>
+    <span class="sep">·</span>
+    <span class="par">E</span>
+    <span class="sep">·</span>
+    <span class="pts">10 pts</span>
+  </div>
+  <div class="reactions">
+    <span class="reaction-pill mine">🔥 <span class="count">4</span></span>
+    <span class="reaction-pill">⛳ <span class="count">2</span></span>
+    <span class="reaction-pill">👏 <span class="count">3</span></span>
+    <span class="reaction-pill mine">🎯 <span class="count">1</span></span>
+    <span class="reaction-add">+</span>
+  </div>
+  <div class="comments">
+    <div class="comment"><span class="name">Mike</span><span class="text">absolute heater bro</span><span class="time">2h</span></div>
+    <div class="comment"><span class="name">Dan</span><span class="text">cap 🧢</span><span class="time">1h</span></div>
+    <div class="comment"><span class="name">Sarah</span><span class="text">what tees?</span><span class="time">45m</span></div>
+    <div class="comment-input">
+      <input placeholder="Add comment..." />
+      <button>Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- Card 2: Emoji picker open -->
+<div class="card">
+  <div class="feed-header">
+    <div class="avatar">M</div>
+    <div class="feed-meta">
+      <div class="feed-name">Mike</div>
+      <div class="feed-course">Riviera Country Club</div>
+    </div>
+    <span class="feed-date">Apr 4</span>
+  </div>
+  <div class="score-row">
+    <span class="dim">91 gross</span>
+    <span class="sep">·</span>
+    <span class="dim">76 net</span>
+    <span class="sep">·</span>
+    <span class="par">+5</span>
+    <span class="sep">·</span>
+    <span class="pts">5 pts</span>
+  </div>
+  <div class="reactions">
+    <span class="reaction-pill">💀 <span class="count">3</span></span>
+    <span class="reaction-pill">🤮 <span class="count">2</span></span>
+    <span class="reaction-add">+</span>
+  </div>
+  <div class="emoji-picker">
+    <span>⛳</span><span>🔥</span><span>🏌️</span><span>💀</span><span>🎯</span><span>👏</span><span>🤮</span><span>😤</span>
+  </div>
+  <div class="comments">
+    <div class="comment"><span class="name">Jake</span><span class="text">riviera is tough bro it's ok</span><span class="time">3h</span></div>
+    <div class="comment-input">
+      <input placeholder="Add comment..." />
+      <button>Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- Card 3: Great round, under par -->
+<div class="card">
+  <div class="feed-header">
+    <div class="avatar">S</div>
+    <div class="feed-meta">
+      <div class="feed-name">Sarah</div>
+      <div class="feed-course">Pebble Beach Golf Links</div>
+    </div>
+    <span class="feed-date">Apr 3</span>
+  </div>
+  <div class="score-row">
+    <span class="dim">78 gross</span>
+    <span class="sep">·</span>
+    <span class="dim">69 net</span>
+    <span class="sep">·</span>
+    <span class="par">-3</span>
+    <span class="sep">·</span>
+    <span class="pts">13 pts</span>
+  </div>
+  <div class="reactions">
+    <span class="reaction-pill">🔥 <span class="count">7</span></span>
+    <span class="reaction-pill">⛳ <span class="count">5</span></span>
+    <span class="reaction-pill">🎯 <span class="count">3</span></span>
+    <span class="reaction-pill">👏 <span class="count">6</span></span>
+    <span class="reaction-add">+</span>
+  </div>
+  <div class="comments">
+    <div class="comment"><span class="name">Jake</span><span class="text">69 nice 😏</span><span class="time">1d</span></div>
+    <div class="comment"><span class="name">Mike</span><span class="text">teach me your ways</span><span class="time">1d</span></div>
+    <div class="comment"><span class="name">Dan</span><span class="text">pebble?? must be nice being rich</span><span class="time">22h</span></div>
+    <div class="comment-input">
+      <input placeholder="Add comment..." />
+      <button>Post</button>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center; color: var(--muted); font-size: 12px; padding: 24px 0 48px;">
+  — End of mockups —<br>
+  Open this file in a browser to see the full visual design
+</div>
+
+</div>
+</body>
+</html>
