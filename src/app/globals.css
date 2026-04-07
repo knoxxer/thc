@@ -9,7 +9,7 @@
   --gold-light: #dbb96e;
   --surface: #122218;
   --surface-light: #1c3324;
-  --muted: #7a9a80;
+  --muted: #9ab8a0;
 }
 
 @theme inline {
@@ -38,43 +38,38 @@ h1, h2, h3 {
   letter-spacing: 0.05em;
 }
 
-/* ── Refreshed design (v2) ── */
-.theme-v2 {
-  --muted: #9ab8a0;
-}
-
-/* v2: global focus-visible ring */
-.theme-v2 :focus-visible {
+/* Focus-visible ring */
+:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 
-.theme-v2 input:focus-visible,
-.theme-v2 select:focus-visible,
-.theme-v2 textarea:focus-visible {
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 0px;
   border-color: transparent;
 }
 
-/* v2: softer de-emphasis for non-top-10 rounds */
-.theme-v2 .round-dim {
+/* Softer de-emphasis for non-top-10 rounds */
+.round-dim {
   opacity: 0.75;
 }
 
-/* v2: better nav link contrast */
-.theme-v2 nav a {
+/* Better nav link contrast */
+nav a {
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* v2: bottom padding for fixed tab bar on mobile */
+/* Bottom padding for fixed tab bar on mobile */
 @media (max-width: 767px) {
-  .theme-v2 main {
+  main {
     padding-bottom: 72px;
   }
 }
 
-/* v2: safe area for bottom tabs */
+/* Safe area for bottom tabs */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }

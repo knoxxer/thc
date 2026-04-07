@@ -5,13 +5,10 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { calculatePoints } from "@/lib/points";
 import { Player, Season } from "@/lib/types";
-import { useDesign } from "@/components/ui/DesignToggle";
 import Link from "next/link";
 
 export default function NewRoundPage() {
   const router = useRouter();
-  const { design } = useDesign();
-  const v2 = design === "v2";
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [season, setSeason] = useState<Season | null>(null);
   const [loading, setLoading] = useState(true);
@@ -269,11 +266,7 @@ export default function NewRoundPage() {
         <button
           type="submit"
           disabled={submitting || grossScore === "" || courseHandicap === ""}
-          className={`w-full disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-md transition-colors font-medium ${
-            v2
-              ? "bg-gold hover:bg-gold-light text-background"
-              : "bg-accent hover:bg-accent-light text-white"
-          }`}
+          className="w-full disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-md transition-colors font-medium bg-gold hover:bg-gold-light text-background"
         >
           {submitting ? "Posting..." : "Post Score"}
         </button>

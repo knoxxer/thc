@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import LeaderboardTable from "@/components/leaderboard/LeaderboardTable";
 import { SeasonStanding } from "@/lib/types";
@@ -8,12 +8,6 @@ vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) => (
     <a href={href} {...props}>{children}</a>
   ),
-}));
-
-// Mock useDesign
-const mockDesign: { design: string; toggle: ReturnType<typeof vi.fn> } = { design: "classic", toggle: vi.fn() };
-vi.mock("@/components/ui/DesignToggle", () => ({
-  useDesign: () => mockDesign,
 }));
 
 const mockStandings: SeasonStanding[] = [
@@ -59,10 +53,6 @@ const mockStandings: SeasonStanding[] = [
 ];
 
 describe("LeaderboardTable", () => {
-  beforeEach(() => {
-    mockDesign.design = "classic";
-  });
-
   it("renders empty state with link to post score", () => {
     render(<LeaderboardTable standings={[]} />);
     expect(screen.getByText("No rounds posted yet.")).toBeInTheDocument();
@@ -79,20 +69,10 @@ describe("LeaderboardTable", () => {
   it("sorts by points descending", () => {
     render(<LeaderboardTable standings={mockStandings} />);
     const names = screen.getAllByText(/Alice|Bob|Carol/).map((el) => el.textContent);
-    // Alice (95) should be first, Bob (80) second, Carol (70) third
     expect(names[0]).toContain("Alice");
   });
 
-  it("shows 3rd place in amber-700 in classic mode", () => {
-    render(<LeaderboardTable standings={mockStandings} />);
-    const thirdBadges = screen.getAllByText("3rd");
-    thirdBadges.forEach((badge) => {
-      expect(badge.className).toContain("text-amber-700");
-    });
-  });
-
-  it("shows 3rd place in amber-500 in v2 mode", () => {
-    mockDesign.design = "v2";
+  it("shows 3rd place in amber-500", () => {
     render(<LeaderboardTable standings={mockStandings} />);
     const thirdBadges = screen.getAllByText("3rd");
     thirdBadges.forEach((badge) => {
@@ -110,7 +90,6 @@ describe("LeaderboardTable", () => {
 
   it("highlights leader row with gold background", () => {
     render(<LeaderboardTable standings={mockStandings} />);
-    // The leader's points should be gold
     const points = screen.getAllByText("95");
     points.forEach((el) => {
       expect(el.className).toContain("text-gold");

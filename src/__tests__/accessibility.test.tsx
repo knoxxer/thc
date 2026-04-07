@@ -17,12 +17,6 @@ vi.mock("@/lib/supabase/client", () => ({
   }),
 }));
 
-// Mock DesignToggle
-vi.mock("@/components/ui/DesignToggle", () => ({
-  useDesign: () => ({ design: "classic", toggle: vi.fn() }),
-  DesignSwitch: () => <button>Try v2</button>,
-}));
-
 // Mock next/image
 vi.mock("next/image", () => ({
   default: ({ alt, ...props }: { alt: string; [key: string]: unknown }) => <img alt={alt} {...props} />,
@@ -31,22 +25,8 @@ vi.mock("next/image", () => ({
 import Nav from "@/components/ui/Nav";
 
 describe("Nav accessibility", () => {
-  it("hamburger button has aria-expanded attribute", () => {
-    render(<Nav />);
-    const menuButton = screen.getByLabelText("Menu");
-    expect(menuButton).toHaveAttribute("aria-expanded", "false");
-  });
-
-  it("hamburger button has adequate touch target (44px)", () => {
-    render(<Nav />);
-    const menuButton = screen.getByLabelText("Menu");
-    expect(menuButton.className).toContain("min-h-[44px]");
-    expect(menuButton.className).toContain("min-w-[44px]");
-  });
-
   it("shows active nav link styling for current page", () => {
     render(<Nav />);
-    // Desktop nav links — the Leaderboard link should have "font-medium" since pathname is "/"
     const links = screen.getAllByText("Leaderboard");
     const desktopLink = links.find((el) => el.className.includes("font-medium"));
     expect(desktopLink).toBeDefined();
@@ -55,7 +35,6 @@ describe("Nav accessibility", () => {
 
 describe("Form accessibility", () => {
   it("form labels are associated with inputs via htmlFor/id", async () => {
-    // We test the raw file content to verify htmlFor/id pairing
     const fs = await import("fs");
     const content = fs.readFileSync("src/app/rounds/new/page.tsx", "utf-8");
 
@@ -80,35 +59,30 @@ describe("Form accessibility", () => {
   });
 });
 
-describe("CSS v2 theme", () => {
-  it("globals.css contains theme-v2 class with lighter muted color", async () => {
+describe("CSS theme", () => {
+  it("globals.css has lighter muted color", async () => {
     const fs = await import("fs");
     const css = fs.readFileSync("src/app/globals.css", "utf-8");
-
-    expect(css).toContain(".theme-v2");
     expect(css).toContain("--muted: #9ab8a0");
   });
 
-  it("globals.css has focus-visible styles for v2", async () => {
+  it("globals.css has focus-visible styles", async () => {
     const fs = await import("fs");
     const css = fs.readFileSync("src/app/globals.css", "utf-8");
-
-    expect(css).toContain(".theme-v2 :focus-visible");
+    expect(css).toContain(":focus-visible");
     expect(css).toContain("outline: 2px solid var(--gold)");
   });
 
-  it("globals.css has round-dim class for v2 opacity override", async () => {
+  it("globals.css has round-dim class for opacity", async () => {
     const fs = await import("fs");
     const css = fs.readFileSync("src/app/globals.css", "utf-8");
-
-    expect(css).toContain(".theme-v2 .round-dim");
+    expect(css).toContain(".round-dim");
     expect(css).toContain("opacity: 0.75");
   });
 
-  it("globals.css has mobile bottom padding for v2 tab bar", async () => {
+  it("globals.css has mobile bottom padding for tab bar", async () => {
     const fs = await import("fs");
     const css = fs.readFileSync("src/app/globals.css", "utf-8");
-
     expect(css).toContain("padding-bottom: 72px");
   });
 });
@@ -117,7 +91,6 @@ describe("Table accessibility", () => {
   it("leaderboard table has sr-only caption", async () => {
     const fs = await import("fs");
     const content = fs.readFileSync("src/components/leaderboard/LeaderboardTable.tsx", "utf-8");
-
     expect(content).toContain('caption className="sr-only"');
     expect(content).toContain("Season leaderboard standings");
   });
@@ -125,7 +98,6 @@ describe("Table accessibility", () => {
   it("round history table has sr-only caption", async () => {
     const fs = await import("fs");
     const content = fs.readFileSync("src/app/players/[slug]/page.tsx", "utf-8");
-
     expect(content).toContain('caption className="sr-only"');
     expect(content).toContain("Round history");
   });

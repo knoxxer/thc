@@ -77,7 +77,7 @@ test.describe("Navigation", () => {
     // The mobile menu is inside the md:hidden dropdown — look for visible Feed links
     const feedLinks = page.locator('a[href="/feed"]');
     const visibleCount = await feedLinks.evaluateAll(
-      (links) => links.filter((l) => l.offsetParent !== null).length
+      (links) => links.filter((l) => (l as HTMLElement).offsetParent !== null).length
     );
     expect(visibleCount).toBeGreaterThan(0);
   });

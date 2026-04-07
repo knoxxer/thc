@@ -65,11 +65,3 @@ describe("BottomTabs", () => {
   });
 });
 
-describe("V2BottomTabs conditional rendering", () => {
-  it("only renders in v2 mode", async () => {
-    const fs = await import("fs");
-    const content = fs.readFileSync("src/components/ui/V2BottomTabs.tsx", "utf-8");
-    expect(content).toContain('design !== "v2"');
-    expect(content).toContain("return null");
-  });
-});
