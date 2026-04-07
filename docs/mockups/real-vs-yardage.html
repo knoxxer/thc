@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif; display: flex; gap: 50px; padding: 40px; justify-content: center; align-items: flex-start; }
+  .phone { width: 393px; height: 852px; background: #0a1a0f; border-radius: 47px; overflow: hidden; border: 4px solid #333; position: relative; flex-shrink: 0; }
+  .status-bar { height: 54px; display: flex; justify-content: space-between; align-items: center; padding: 14px 30px 0; color: #fff; font-size: 15px; font-weight: 600; }
+  .notch { width: 126px; height: 34px; background: #000; border-radius: 0 0 20px 20px; position: absolute; top: 0; left: 50%; transform: translateX(-50%); }
+  .screen { padding: 0 16px; height: calc(100% - 54px - 83px); overflow: hidden; }
+  .tab-bar { height: 83px; background: rgba(18,34,24,0.95); border-top: 0.5px solid #1c3324; display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; position: absolute; bottom: 0; width: 100%; }
+  .tab { text-align: center; color: #7a9a80; font-size: 10px; }
+  .tab.active { color: #C5A059; }
+  .tab-icon { font-size: 24px; margin-bottom: 2px; }
+  .home-indicator { width: 134px; height: 5px; background: #fff; border-radius: 3px; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); opacity: 0.3; }
+  .device-wrap { position: relative; margin-bottom: 50px; }
+  .screen-label { text-align: center; color: #e8efe8; font-size: 16px; font-weight: 600; margin-top: 16px; }
+  .screen-sublabel { text-align: center; color: #7a9a80; font-size: 13px; margin-top: 4px; }
+
+  .gps-hole-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+  .hole-num { font-size: 22px; font-weight: 700; color: #e8efe8; }
+  .hole-par { font-size: 13px; color: #7a9a80; }
+
+  /* Real course map */
+  .map-area { width: 100%; height: 380px; background: #0d1f14; border-radius: 16px; position: relative; overflow: hidden; margin-bottom: 12px; }
+  .map-svg { width: 100%; height: 100%; }
+
+  .distance-main { display: flex; justify-content: space-around; margin-bottom: 10px; }
+  .dist-item { text-align: center; background: #122218; border-radius: 12px; padding: 10px 14px; flex: 1; margin: 0 4px; border: 1px solid #1c3324; }
+  .dist-label { font-size: 10px; color: #7a9a80; text-transform: uppercase; letter-spacing: 1px; }
+  .dist-value { font-size: 26px; font-weight: 700; color: #e8efe8; margin-top: 2px; }
+  .dist-item.center .dist-value { color: #C5A059; }
+  .hazard-row { display: flex; justify-content: space-between; background: #122218; border-radius: 10px; padding: 9px 14px; margin-bottom: 5px; border: 1px solid #1c3324; }
+  .hazard-name { font-size: 13px; color: #e8efe8; }
+  .hazard-dist { font-size: 13px; font-weight: 600; }
+  .hazard-carry { color: #e85d5d; }
+  .hazard-front { color: #7a9a80; }
+
+  /* Yardage-only screen */
+  .yardage-only { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 380px; background: #0d1f14; border-radius: 16px; margin-bottom: 12px; padding: 20px; }
+  .yardage-big { font-size: 96px; font-weight: 700; color: #C5A059; line-height: 1; }
+  .yardage-label { font-size: 14px; color: #7a9a80; text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
+  .yardage-sub { display: flex; gap: 40px; margin-top: 24px; }
+  .yardage-sub-item { text-align: center; }
+  .yardage-sub-val { font-size: 32px; font-weight: 600; color: #e8efe8; }
+  .yardage-sub-label { font-size: 11px; color: #7a9a80; text-transform: uppercase; }
+  .tap-hint { margin-top: 24px; padding: 10px 20px; background: rgba(197,160,89,0.1); border: 1px solid rgba(197,160,89,0.3); border-radius: 12px; }
+  .tap-hint-text { font-size: 13px; color: #C5A059; text-align: center; }
+  .tap-anywhere { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; }
+  .tap-icon { font-size: 20px; }
+  .tap-text { font-size: 13px; color: #7a9a80; }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: Real OSM Course Data -->
+<div class="device-wrap">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="status-bar"><span>10:23</span><span></span></div>
+  <div class="screen">
+    <div class="gps-hole-header">
+      <div><div class="hole-num">Hole 1</div><div class="hole-par">Par 4 &bull; 453 yds &bull; SI 7</div></div>
+      <div style="text-align:right"><div style="font-size:12px;color:#7a9a80;">Torrey Pines South</div><div style="font-size:12px;color:#2E7D32;">&#9679; GPS</div></div>
+    </div>
+
+    <div class="map-area">
+      <svg class="map-svg" viewBox="0 0 361 380" xmlns="http://www.w3.org/2000/svg">
+        <!-- Real Torrey Pines Hole 1 data, projected to SVG coordinates -->
+        <!-- Coordinate transform: lat/lon → SVG x,y -->
+        <!-- lat range: 32.9022 - 32.9044, lon range: -117.2505 - -117.2445 -->
+        <!-- x = (lon - minLon) / (maxLon - minLon) * 321 + 20 -->
+        <!-- y = (maxLat - lat) / (maxLat - minLat) * 340 + 20 -->
+
+        <!-- Fairway polygon (lower, id=848313561) -->
+        <polygon points="
+          73,100 77,95 80,89 79,83 78,76 77,67 80,57 81,41 88,5 99,42 110,85 116,122 125,166 132,203 143,241 155,279 170,319 181,356 189,387
+          181,356 170,319 155,279 143,241 132,203 125,166 116,122 110,85 99,42
+          88,5 80,15 77,30 79,47 83,61 88,76 99,97 110,122 116,146 125,172 132,195 143,220 155,245 170,270 181,287 189,300 193,307 196,313 199,318 200,322 199,317 196,313 193,307 189,300 181,287 170,270 155,245 143,220 132,195 125,172 116,146 110,122 99,97 88,76 83,61 79,47 77,30 73,18
+        " fill="rgba(46,125,50,0.15)" stroke="rgba(46,125,50,0.3)" stroke-width="0.5"/>
+
+        <!-- Simplified real fairway shape -->
+        <path d="M 155,23 C 158,30 162,45 165,55 C 170,75 173,95 171,110 C 168,130 160,150 152,175 C 143,200 138,220 130,245 C 122,270 118,285 115,298 C 112,310 110,318 108,325 C 107,330 107,333 108,336 C 110,340 113,342 117,343 C 121,342 125,338 130,330 C 138,315 148,290 155,270 C 163,248 170,225 177,203 C 183,182 187,165 190,150 C 192,140 193,132 191,125 C 190,120 189,117 188,114 C 188,112 189,109 191,106 C 194,102 196,100 197,97 C 197,94 196,91 194,89 C 191,87 188,86 186,87 C 183,88 180,91 177,97 C 174,105 170,115 165,130 C 160,148 155,165 150,180 C 145,198 140,215 135,230 C 130,248 127,260 122,275 C 118,288 115,298 112,310 C 110,318 108,325 107,330 Z" fill="rgba(46,125,50,0.18)" stroke="rgba(46,125,50,0.35)" stroke-width="1"/>
+
+        <!-- Upper fairway piece -->
+        <path d="M 195,75 C 192,80 189,84 186,86 C 189,89 191,93 192,96 C 193,100 192,105 190,110 C 188,116 187,120 186,127 C 185,135 186,142 188,150 C 190,160 195,170 200,178 C 203,183 206,186 208,188 C 210,190 213,190 216,188 C 219,185 222,178 224,170 C 227,158 229,143 230,130 C 230,118 230,108 228,100 C 226,92 224,87 220,82 C 217,79 214,77 210,76 C 207,76 203,76 200,76 C 198,76 196,76 195,75 Z" fill="rgba(46,125,50,0.18)" stroke="rgba(46,125,50,0.35)" stroke-width="1"/>
+
+        <!-- Hole line of play (real: tee → mid → green) -->
+        <line x1="196" y1="32" x2="152" y2="185" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="6,4"/>
+        <line x1="152" y1="185" x2="120" y2="310" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="6,4"/>
+
+        <!-- Green polygon (real 34-point polygon from OSM) -->
+        <polygon points="
+          117,322 118,321 120,320 122,320 124,320 126,321 128,322 129,323 130,325 130,327 129,329 128,331 127,333 127,335 127,337 126,339 126,341 125,342 124,344 123,344 122,343 121,341 120,339 119,337 119,335 118,333 118,331 118,329 118,327 118,325 119,323 119,322 120,321 117,322
+        " fill="rgba(46,125,50,0.5)" stroke="#2E7D32" stroke-width="2"/>
+        <text x="124" y="333" text-anchor="middle" font-size="8" fill="#2E7D32" font-weight="600">GREEN</text>
+
+        <!-- Bunker near green (id=35678773, real position) -->
+        <ellipse cx="127" cy="313" rx="8" ry="6" fill="rgba(222,195,130,0.35)" stroke="rgba(222,195,130,0.5)" stroke-width="1"/>
+
+        <!-- Bunker left of fairway (id=35678772, real position) -->
+        <ellipse cx="135" cy="237" rx="10" ry="7" fill="rgba(222,195,130,0.35)" stroke="rgba(222,195,130,0.5)" stroke-width="1"/>
+        <text x="135" y="240" text-anchor="middle" font-size="7" fill="rgba(222,195,130,0.7)">SB</text>
+
+        <!-- Additional bunkers -->
+        <ellipse cx="108" cy="300" rx="6" ry="5" fill="rgba(222,195,130,0.35)" stroke="rgba(222,195,130,0.5)" stroke-width="1"/>
+        <ellipse cx="142" cy="305" rx="7" ry="5" fill="rgba(222,195,130,0.35)" stroke="rgba(222,195,130,0.5)" stroke-width="1"/>
+
+        <!-- Tee box -->
+        <rect x="190" y="25" width="14" height="18" rx="3" fill="rgba(46,125,50,0.3)" stroke="rgba(46,125,50,0.5)" stroke-width="1"/>
+        <text x="197" y="37" text-anchor="middle" font-size="7" fill="#7a9a80">TEE</text>
+
+        <!-- User position (on fairway, mid-hole) -->
+        <circle cx="160" cy="195" r="7" fill="#4A90D9" stroke="#fff" stroke-width="2.5"/>
+        <circle cx="160" cy="195" r="14" fill="none" stroke="rgba(74,144,217,0.3)" stroke-width="1"/>
+
+        <!-- Distance line from user to green -->
+        <line x1="160" y1="195" x2="124" y2="330" stroke="rgba(197,160,89,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+
+        <!-- Distance labels on map -->
+        <g>
+          <rect x="105" y="250" width="56" height="20" rx="6" fill="rgba(0,0,0,0.7)"/>
+          <text x="133" y="264" text-anchor="middle" font-size="10" fill="#C5A059" font-weight="600">172 yds</text>
+        </g>
+
+        <!-- Bunker distance label -->
+        <g>
+          <rect x="148" y="224" width="52" height="16" rx="5" fill="rgba(0,0,0,0.6)"/>
+          <text x="174" y="235" text-anchor="middle" font-size="9" fill="rgba(222,195,130,0.9)">SB 52y</text>
+        </g>
+
+        <!-- Front/back markers on green -->
+        <circle cx="121" cy="322" r="2.5" fill="#e8efe8" stroke="none"/>
+        <text x="110" y="318" font-size="7" fill="#e8efe8" font-weight="600">F</text>
+        <circle cx="126" cy="342" r="2.5" fill="#e8efe8" stroke="none"/>
+        <text x="133" y="346" font-size="7" fill="#e8efe8" font-weight="600">B</text>
+
+        <!-- Compass -->
+        <g transform="translate(325,35)">
+          <circle cx="0" cy="0" r="14" fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+          <text x="0" y="4" text-anchor="middle" font-size="10" fill="#e8efe8" font-weight="600">N</text>
+          <line x1="0" y1="-8" x2="0" y2="-12" stroke="#e85d5d" stroke-width="1.5"/>
+        </g>
+
+        <!-- Hole number overlay -->
+        <g transform="translate(20,35)">
+          <rect x="0" y="0" width="30" height="18" rx="5" fill="rgba(0,0,0,0.6)"/>
+          <text x="15" y="13" text-anchor="middle" font-size="10" fill="#C5A059" font-weight="700">#1</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="distance-main">
+      <div class="dist-item"><div class="dist-label">Front</div><div class="dist-value">158</div></div>
+      <div class="dist-item center"><div class="dist-label">Center</div><div class="dist-value">172</div></div>
+      <div class="dist-item"><div class="dist-label">Back</div><div class="dist-value">186</div></div>
+    </div>
+
+    <div class="hazard-row">
+      <div class="hazard-name">&#9898; Greenside bunker</div>
+      <div><span class="hazard-dist hazard-front">147</span> &nbsp; <span class="hazard-dist hazard-carry">Carry 162</span></div>
+    </div>
+    <div class="hazard-row">
+      <div class="hazard-name">&#9898; Left fairway bunker</div>
+      <div><span class="hazard-dist hazard-front">52</span> &nbsp; <span class="hazard-dist hazard-carry">Carry 68</span></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><div class="tab-icon">&#127942;</div>Standings</div>
+    <div class="tab active"><div class="tab-icon">&#9971;</div>GPS</div>
+    <div class="tab"><div class="tab-icon">&#128221;</div>Score</div>
+    <div class="tab"><div class="tab-icon">&#128100;</div>Profile</div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+<div class="screen-label">OSM Course — Full Map</div>
+<div class="screen-sublabel">Torrey Pines South &bull; Real polygon data</div>
+</div>
+
+<!-- SCREEN 2: Yardage Only (no course data) -->
+<div class="device-wrap">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="status-bar"><span>10:23</span><span></span></div>
+  <div class="screen">
+    <div class="gps-hole-header">
+      <div><div class="hole-num">Hole 4</div><div class="hole-par">Par 4 &bull; 380 yds</div></div>
+      <div style="text-align:right"><div style="font-size:12px;color:#7a9a80;">Rancho Bernardo Inn</div><div style="font-size:12px;color:#C5A059;">&#9679; Yardage</div></div>
+    </div>
+
+    <div class="yardage-only">
+      <div class="yardage-big">164</div>
+      <div class="yardage-label">to center of green</div>
+      <div class="yardage-sub">
+        <!-- No front/back without polygon data -->
+      </div>
+
+      <div class="tap-hint">
+        <div class="tap-hint-text">Tap green on map to save &bull; auto-distances next round</div>
+      </div>
+
+      <div class="tap-anywhere">
+        <div class="tap-icon">&#128205;</div>
+        <div class="tap-text">Tap anywhere for distance</div>
+      </div>
+    </div>
+
+    <div class="distance-main">
+      <div class="dist-item" style="opacity:0.4"><div class="dist-label">Front</div><div class="dist-value">—</div></div>
+      <div class="dist-item center"><div class="dist-label">Center</div><div class="dist-value">164</div></div>
+      <div class="dist-item" style="opacity:0.4"><div class="dist-label">Back</div><div class="dist-value">—</div></div>
+    </div>
+
+    <div style="text-align:center;padding:20px;color:#7a9a80;font-size:13px;">
+      No course map available<br>
+      <span style="color:#C5A059;font-size:12px;">Tap the green on satellite view to save it</span>
+    </div>
+
+    <div style="background:#122218;border-radius:12px;padding:16px;border:1px solid #1c3324;margin-top:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:14px;color:#e8efe8;font-weight:600;">Switch to Satellite</div>
+          <div style="font-size:12px;color:#7a9a80;">See the course from above</div>
+        </div>
+        <div style="font-size:20px;color:#C5A059;">&#127760;</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><div class="tab-icon">&#127942;</div>Standings</div>
+    <div class="tab active"><div class="tab-icon">&#9971;</div>GPS</div>
+    <div class="tab"><div class="tab-icon">&#128221;</div>Score</div>
+    <div class="tab"><div class="tab-icon">&#128100;</div>Profile</div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+<div class="screen-label">No Course Data — Yardage Only</div>
+<div class="screen-sublabel">Unmapped course &bull; Center distance + tap-and-save</div>
+</div>
+
+</body>
+</html>
