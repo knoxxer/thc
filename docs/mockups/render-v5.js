@@ -198,20 +198,20 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
       <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.1)"></div>
       <svg id="ov1" style="position:absolute;top:0;left:0;width:100%;height:100%;" viewBox="0 0 361 400">
-        <!-- Green -->
-        <ellipse id="green-el" cx="0" cy="0" rx="16" ry="12" fill="rgba(45,180,60,0.3)" stroke="#4CAF50" stroke-width="2.5"/>
-        <ellipse id="green-el2" cx="0" cy="0" rx="16" ry="12" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <!-- Green pin marker (small, clean) -->
+        <circle id="green-el" cx="0" cy="0" r="7" fill="rgba(197,160,89,0.4)" stroke="#C5A059" stroke-width="2.5"/>
+        <ellipse id="green-el2" cx="0" cy="0" rx="0" ry="0" fill="none"/>
         <!-- Pin -->
         <line id="pin1" stroke="#fff" stroke-width="1.5"/>
         <polygon id="flag" fill="#e85d5d"/>
-        <!-- F/B -->
-        <circle id="front-c" r="3.5" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.5"/>
-        <text id="front-t" font-size="11" fill="#fff" font-weight="700" style="text-shadow:0 1px 4px rgba(0,0,0,1)">F</text>
-        <circle id="back-c" r="3.5" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.5"/>
-        <text id="back-t" font-size="11" fill="#fff" font-weight="700" style="text-shadow:0 1px 4px rgba(0,0,0,1)">B</text>
-        <!-- Bunker outlines -->
-        <ellipse id="bk1" rx="12" ry="8" fill="none" stroke="rgba(240,220,160,0.7)" stroke-width="1.5" stroke-dasharray="3,2"/>
-        <ellipse id="bk2" rx="10" ry="7" fill="none" stroke="rgba(240,220,160,0.7)" stroke-width="1.5" stroke-dasharray="3,2"/>
+        <!-- Hidden — no F/B markers on map -->
+        <circle id="front-c" r="0" fill="none"/>
+        <text id="front-t" font-size="0" fill="none"></text>
+        <circle id="back-c" r="0" fill="none"/>
+        <text id="back-t" font-size="0" fill="none"></text>
+        <!-- Hidden — no bunker outlines -->
+        <ellipse id="bk1" rx="0" ry="0" fill="none"/>
+        <ellipse id="bk2" rx="0" ry="0" fill="none"/>
         <!-- User -->
         <circle id="user-c" r="9" fill="#4A90D9" stroke="#fff" stroke-width="3"/>
         <circle id="user-r" r="20" fill="none" stroke="rgba(74,144,217,0.25)" stroke-width="1.5"/>
@@ -240,7 +240,7 @@ window.addEventListener('DOMContentLoaded', () => {
   <div class="hi"></div>
 </div>
 <div class="sl">With Course Data</div>
-<div class="ssl">Satellite + overlays + F/C/B</div>
+<div class="ssl">Satellite + front/center/back + hazards</div>
 </div>
 
 <!-- SCREEN 2: Satellite only -->
