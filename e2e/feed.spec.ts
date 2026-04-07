@@ -57,20 +57,11 @@ test.describe("Feed Page", () => {
 });
 
 test.describe("Social API", () => {
-  test("POST /api/social returns 401 without auth", async ({ request }) => {
-    const res = await request.post("/api/social", {
-      data: { action: "add_reaction", roundId: "test", emoji: "🔥" },
+  test("POST /api/notifications returns 401 without auth", async ({ request }) => {
+    const res = await request.post("/api/notifications", {
+      data: { type: "reaction", title: "test", notifyAll: true },
     });
     expect(res.status()).toBe(401);
-  });
-
-  test("POST /api/social returns 400 for unknown action", async ({ request }) => {
-    // This will return 401 since no auth, but tests the endpoint exists
-    const res = await request.post("/api/social", {
-      data: { action: "unknown" },
-    });
-    // 401 because unauthenticated — endpoint is reachable
-    expect([400, 401]).toContain(res.status());
   });
 });
 

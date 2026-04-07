@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { sendNotification } from "@/lib/send-notification";
 import type { CommentWithPlayer } from "@/lib/types";
 import { timeAgo } from "@/lib/format";
@@ -30,22 +31,24 @@ export default function CommentSection({
     setSubmitting(true);
     setInput("");
 
-    const res = await fetch("/api/social", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "add_comment", roundId, commentBody: body }),
-    });
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("round_comments")
+      .insert({
+        round_id: roundId,
+        player_id: currentPlayerId,
+        body,
+      })
+      .select()
+      .single();
 
-    if (!res.ok) {
+    if (error) {
       setInput(body);
-    } else {
-      const { data } = await res.json();
-      if (data) {
-        setComments((prev) => [
-          ...prev,
-          { ...data, player_name: "You" } as CommentWithPlayer,
-        ]);
-      }
+    } else if (data) {
+      setComments((prev) => [
+        ...prev,
+        { ...data, player_name: "You" } as CommentWithPlayer,
+      ]);
 
       if (currentPlayerId !== roundOwnerId) {
         sendNotification({

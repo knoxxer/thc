@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { sendNotification } from "@/lib/send-notification";
 import type { RoundReaction } from "@/lib/types";
 
@@ -72,17 +73,17 @@ export default function ReactionBar({
 
     const existing = findMyReaction(emoji);
     setLoading(true);
+    const supabase = createClient();
 
     if (existing) {
       setReactions((prev) => prev.filter((r) => r.id !== existing.id));
 
-      const res = await fetch("/api/social", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "remove_reaction", reactionId: existing.id }),
-      });
+      const { error } = await supabase
+        .from("round_reactions")
+        .delete()
+        .eq("id", existing.id);
 
-      if (!res.ok) {
+      if (error) {
         setReactions((prev) => [...prev, existing]);
       }
     } else {
@@ -97,21 +98,22 @@ export default function ReactionBar({
       };
       setReactions((prev) => [...prev, newReaction]);
 
-      const res = await fetch("/api/social", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "add_reaction", roundId, emoji }),
-      });
+      const { data, error } = await supabase
+        .from("round_reactions")
+        .insert({
+          round_id: roundId,
+          player_id: currentPlayerId,
+          emoji,
+        })
+        .select()
+        .single();
 
-      if (!res.ok) {
+      if (error) {
         setReactions((prev) => prev.filter((r) => r.id !== tempId));
-      } else {
-        const { data } = await res.json();
-        if (data) {
-          setReactions((prev) =>
-            prev.map((r) => (r.id === tempId ? { ...r, id: data.id, player_id: data.player_id } : r))
-          );
-        }
+      } else if (data) {
+        setReactions((prev) =>
+          prev.map((r) => (r.id === tempId ? { ...r, id: data.id } : r))
+        );
 
         if (currentPlayerId !== roundOwnerId) {
           sendNotification({
