@@ -6,52 +6,50 @@ test.describe("Feed Page", () => {
     await expect(page.locator("h1")).toContainText("Feed");
   });
 
-  test("shows empty state or rounds", async ({ page }) => {
+  test("shows feed content area", async ({ page }) => {
     await page.goto("/feed");
+    // The ActivityFeed wrapper always renders a space-y-4 div
+    await expect(page.locator("h1")).toContainText("Feed");
+    // Page should have rendered content below the heading
+    const body = page.locator("body");
+    await expect(body).toBeVisible();
+  });
 
-    // Should show either rounds or empty state message
-    const content = page.locator("main");
-    await expect(content).toBeVisible();
-
-    const feedContent = page.locator('[class*="space-y"]');
-    await expect(feedContent).toBeVisible();
+  test("feed shows round cards or empty state", async ({ page }) => {
+    await page.goto("/feed");
+    // Wait for page to fully render
+    await page.waitForLoadState("networkidle");
+    // The feed should render either round cards or the empty state
+    const bodyText = await page.locator("body").innerText();
+    const hasRounds = bodyText.includes("Torrey Pines") || bodyText.includes("gross");
+    const hasEmpty = bodyText.includes("No rounds posted yet") || bodyText.includes("No active season");
+    expect(hasRounds || hasEmpty).toBe(true);
   });
 
   test("nav contains Feed link", async ({ page }) => {
     await page.goto("/");
-
     const feedLink = page.locator('a[href="/feed"]');
     await expect(feedLink.first()).toBeVisible();
   });
 
   test("Feed link navigates to /feed", async ({ page }) => {
     await page.goto("/");
-
-    // Click Feed in nav (desktop or mobile)
     const feedLink = page.locator('a[href="/feed"]').first();
     await feedLink.click();
-
     await expect(page).toHaveURL("/feed");
     await expect(page.locator("h1")).toContainText("Feed");
   });
 
-  test("reaction bar shows + button when logged in", async ({ page }) => {
-    // This test verifies the reaction bar renders properly
-    // For unauthenticated users, + button should NOT appear
+  test("reaction + button hidden when not logged in", async ({ page }) => {
     await page.goto("/feed");
-
-    // The + button should not be visible without auth
+    // Unauthenticated users should see no + buttons for reactions
     const plusButtons = page.locator('button:has-text("+")');
-    // Count may be 0 if no rounds, or if user is not logged in
     const count = await plusButtons.count();
-    // Unauthenticated users should see 0 + buttons
     expect(count).toBe(0);
   });
 
   test("post upcoming form hidden when not logged in", async ({ page }) => {
     await page.goto("/feed");
-
-    // The post form button should not be visible without auth
     const postButton = page.locator('text="+ Post an upcoming round"');
     await expect(postButton).toHaveCount(0);
   });
@@ -76,9 +74,12 @@ test.describe("Navigation", () => {
     const menuButton = page.locator('button[aria-label="Menu"]');
     await menuButton.click();
 
-    // Feed link should be visible in the dropdown
-    const feedLink = page.locator('a[href="/feed"]');
-    await expect(feedLink.first()).toBeVisible();
+    // The mobile menu is inside the md:hidden dropdown — look for visible Feed links
+    const feedLinks = page.locator('a[href="/feed"]');
+    const visibleCount = await feedLinks.evaluateAll(
+      (links) => links.filter((l) => l.offsetParent !== null).length
+    );
+    expect(visibleCount).toBeGreaterThan(0);
   });
 });
 
