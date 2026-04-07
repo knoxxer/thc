@@ -39,7 +39,7 @@ enum SocialServiceError: LocalizedError {
 
 @Observable
 final class SocialService: SocialServiceProviding, @unchecked Sendable {
-    private let supabase: SupabaseClientProviding
+    let supabase: SupabaseClientProviding
 
     /// Tracks the active Realtime channel so we can unsubscribe on dealloc.
     private var realtimeChannel: RealtimeChannel?

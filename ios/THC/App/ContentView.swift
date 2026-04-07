@@ -101,6 +101,8 @@ private struct MainTabView: View {
     let locationManager: LocationManager
     let supabase: SupabaseClientProviding
 
+    @State private var feedViewModel: FeedViewModel?
+
     var body: some View {
         TabView {
             // Tab 1: Standings
@@ -111,9 +113,26 @@ private struct MainTabView: View {
                 Label("Standings", systemImage: "list.number")
             }
 
-            // Tab 2: New Round (course search)
-            // Season and storage are injected when available via StandingsViewModel.
-            // CourseSearchView handles season=nil gracefully (shows "no active season").
+            // Tab 2: Feed
+            NavigationStack {
+                if let vm = feedViewModel {
+                    FeedView(viewModel: vm)
+                } else {
+                    ProgressView()
+                        .task {
+                            feedViewModel = FeedViewModel(
+                                socialService: SocialService(supabase: supabase),
+                                syncService: syncService,
+                                player: player
+                            )
+                        }
+                }
+            }
+            .tabItem {
+                Label("Feed", systemImage: "bubble.left.and.bubble.right")
+            }
+
+            // Tab 3: New Round (course search)
             NavigationStack {
                 CourseSearchViewPlaceholder(
                     player: player,
@@ -127,7 +146,7 @@ private struct MainTabView: View {
                 Label("New Round", systemImage: "plus.circle.fill")
             }
 
-            // Tab 3: Profile
+            // Tab 4: Profile
             NavigationStack {
                 PlayerDetailView(
                     player: player,
