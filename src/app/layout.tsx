@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Oswald } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/ui/Nav";
+import { DesignProvider } from "@/components/ui/DesignToggle";
+import V2BottomTabs from "@/components/ui/V2BottomTabs";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,8 +39,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${oswald.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Nav />
-        <main className="flex-1">{children}</main>
+        <DesignProvider>
+          <Nav />
+          <main className="flex-1 pb-[env(safe-area-inset-bottom)]">{children}</main>
+          <V2BottomTabs />
+        </DesignProvider>
       </body>
     </html>
   );

@@ -75,15 +75,15 @@ export default async function PlayerPage({
       {/* Season summary */}
       {season && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <div className="bg-surface rounded-xl border border-surface-light p-3 sm:p-4">
+          <div className="bg-surface rounded-xl border border-surface-light p-4">
             <p className="text-xs sm:text-sm text-muted">Points</p>
             <p className="text-xl sm:text-2xl font-bold text-gold">{totalPoints}</p>
           </div>
-          <div className="bg-surface rounded-xl border border-surface-light p-3 sm:p-4">
+          <div className="bg-surface rounded-xl border border-surface-light p-4">
             <p className="text-xs sm:text-sm text-muted">Rounds</p>
             <p className="text-xl sm:text-2xl font-bold">{rounds.length}</p>
           </div>
-          <div className="bg-surface rounded-xl border border-surface-light p-3 sm:p-4">
+          <div className="bg-surface rounded-xl border border-surface-light p-4">
             <p className="text-xs sm:text-sm text-muted">Best Round</p>
             <p className="text-xl sm:text-2xl font-bold">
               {rounds.length > 0
@@ -91,7 +91,7 @@ export default async function PlayerPage({
                 : "—"}
             </p>
           </div>
-          <div className="bg-surface rounded-xl border border-surface-light p-3 sm:p-4">
+          <div className="bg-surface rounded-xl border border-surface-light p-4">
             <p className="text-xs sm:text-sm text-muted">Status</p>
             <p className="text-xl sm:text-2xl font-bold">
               {isEligible ? (
@@ -125,7 +125,7 @@ export default async function PlayerPage({
                   <div
                     key={round.id}
                     className={`px-4 py-3 ${
-                      isTop10 ? "" : "opacity-50"
+                      isTop10 ? "" : "round-dim opacity-50"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -151,15 +151,16 @@ export default async function PlayerPage({
             {/* Desktop: table */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
+                <caption className="sr-only">Round history</caption>
                 <thead>
                   <tr className="border-b border-surface-light text-muted text-xs uppercase tracking-wider">
-                    <th className="text-left py-3 px-3">Date</th>
-                    <th className="text-left py-3 px-3">Course</th>
-                    <th className="text-center py-3 px-3">Gross</th>
-                    <th className="text-center py-3 px-3">HCP</th>
-                    <th className="text-center py-3 px-3">Net</th>
-                    <th className="text-center py-3 px-3">vs Par</th>
-                    <th className="text-right py-3 px-3">Points</th>
+                    <th className="text-left py-3 px-4">Date</th>
+                    <th className="text-left py-3 px-4">Course</th>
+                    <th className="text-center py-3 px-4">Gross</th>
+                    <th className="text-center py-3 px-4">HCP</th>
+                    <th className="text-center py-3 px-4">Net</th>
+                    <th className="text-center py-3 px-4">vs Par</th>
+                    <th className="text-right py-3 px-4">Points</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -169,28 +170,28 @@ export default async function PlayerPage({
                       <tr
                         key={round.id}
                         className={`border-b border-surface-light/50 ${
-                          isTop10 ? "bg-surface-light/20" : "opacity-60"
+                          isTop10 ? "bg-surface-light/20" : "round-dim opacity-60"
                         }`}
                       >
-                        <td className="py-3 px-3 text-sm">
+                        <td className="py-3 px-4 text-sm">
                           {formatDate(round.played_at)}
                         </td>
-                        <td className="py-3 px-3 text-sm">
+                        <td className="py-3 px-4 text-sm">
                           {round.course_name}
                         </td>
-                        <td className="py-3 px-3 text-center text-sm">
+                        <td className="py-3 px-4 text-center text-sm">
                           {round.gross_score}
                         </td>
-                        <td className="py-3 px-3 text-center text-sm text-muted">
+                        <td className="py-3 px-4 text-center text-sm text-muted">
                           {round.course_handicap}
                         </td>
-                        <td className="py-3 px-3 text-center text-sm font-medium">
+                        <td className="py-3 px-4 text-center text-sm font-medium">
                           {round.net_score}
                         </td>
-                        <td className="py-3 px-3 text-center text-sm">
+                        <td className="py-3 px-4 text-center text-sm">
                           {formatVsPar(round.net_vs_par)}
                         </td>
-                        <td className="py-3 px-3 text-right font-bold text-gold">
+                        <td className="py-3 px-4 text-right font-bold text-gold">
                           {round.points}
                           {isTop10 && rounds.length > 10 && (
                             <span className="ml-1 text-xs text-accent-light">
