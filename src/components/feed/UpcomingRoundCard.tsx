@@ -2,14 +2,10 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { UpcomingRound, UpcomingRoundRsvp } from "@/lib/types";
-
-interface RsvpWithPlayer extends UpcomingRoundRsvp {
-  player_name: string;
-}
+import type { UpcomingRoundRsvp, RsvpWithPlayer, UpcomingRoundWithOrganizer } from "@/lib/types";
 
 interface UpcomingRoundCardProps {
-  round: UpcomingRound & { organizer_name: string };
+  round: UpcomingRoundWithOrganizer;
   rsvps: RsvpWithPlayer[];
   currentPlayerId: string | null;
 }
@@ -112,11 +108,9 @@ export default function UpcomingRoundCard({
 
   return (
     <div className="bg-surface rounded-xl border border-accent-light/30 p-4 sm:p-5">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-accent-light">
-          Upcoming
-        </span>
-      </div>
+      <span className="text-xs font-semibold uppercase tracking-wider text-accent-light mb-2 block">
+        Upcoming
+      </span>
 
       <h3 className="text-lg font-semibold text-white mb-1">
         {round.course_name}

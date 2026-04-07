@@ -118,3 +118,23 @@ export interface Milestone {
   playerSlug: string;
   timestamp: string;
 }
+
+export interface CommentWithPlayer extends RoundComment {
+  player_name: string;
+}
+
+export interface RsvpWithPlayer extends UpcomingRoundRsvp {
+  player_name: string;
+}
+
+export interface UpcomingRoundWithOrganizer extends UpcomingRound {
+  organizer_name: string;
+}
+
+export interface WeeklyRecapData {
+  weekLabel: string;
+  roundsPosted: number;
+  bestRound: { playerName: string; courseName: string; points: number } | null;
+  totalPoints: number;
+  biggestMover: { playerName: string; rank: number } | null;
+}

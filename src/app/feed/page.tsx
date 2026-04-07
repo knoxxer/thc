@@ -9,46 +9,38 @@ import type {
   SeasonStanding,
   UpcomingRound,
   UpcomingRoundRsvp,
+  CommentWithPlayer,
+  RsvpWithPlayer,
+  UpcomingRoundWithOrganizer,
 } from "@/lib/types";
 
 export const revalidate = 60;
 
-interface CommentWithPlayer extends RoundComment {
-  player_name: string;
-}
-
-interface RsvpWithPlayer extends UpcomingRoundRsvp {
-  player_name: string;
-}
-
-interface UpcomingRoundWithOrganizer extends UpcomingRound {
-  organizer_name: string;
-}
-
 export default async function FeedPage() {
   const supabase = await createClient();
 
-  // Get current user + player
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let currentPlayerId: string | null = null;
-  if (user) {
-    const { data: player } = await supabase
-      .from("players")
-      .select("id")
-      .eq("auth_user_id", user.id)
-      .single();
-    currentPlayerId = player?.id ?? null;
-  }
+  // Parallelize player + season lookups (independent of each other)
+  const [playerResult, seasonResult] = await Promise.all([
+    user
+      ? supabase
+          .from("players")
+          .select("id")
+          .eq("auth_user_id", user.id)
+          .single()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("seasons")
+      .select("*")
+      .eq("is_active", true)
+      .single<Season>(),
+  ]);
 
-  // Fetch active season
-  const { data: season } = await supabase
-    .from("seasons")
-    .select("*")
-    .eq("is_active", true)
-    .single<Season>();
+  const currentPlayerId = playerResult.data?.id ?? null;
+  const season = seasonResult.data;
 
   if (!season) {
     return (
@@ -59,7 +51,6 @@ export default async function FeedPage() {
     );
   }
 
-  // Fetch recent rounds with player info
   const { data: roundsRaw } = await supabase
     .from("rounds")
     .select("*, player:players(id, display_name, slug, avatar_url)")
@@ -70,7 +61,6 @@ export default async function FeedPage() {
   const rounds = (roundsRaw as FeedRound[]) || [];
   const roundIds = rounds.map((r) => r.id);
 
-  // Fetch reactions + comments + standings + upcoming rounds in parallel
   const [reactionsResult, commentsResult, standingsResult, upcomingResult] =
     await Promise.all([
       roundIds.length > 0
@@ -88,7 +78,7 @@ export default async function FeedPage() {
         : Promise.resolve({ data: [] }),
       supabase
         .from("season_standings")
-        .select("*")
+        .select("player_id, player_name, player_slug, total_rounds, best_n_points")
         .eq("season_id", season.id),
       supabase
         .from("upcoming_rounds")
@@ -100,14 +90,12 @@ export default async function FeedPage() {
   const reactions = (reactionsResult.data as RoundReaction[]) || [];
   const standings = (standingsResult.data as SeasonStanding[]) || [];
 
-  // Group reactions by round
   const reactionsByRound: Record<string, RoundReaction[]> = {};
   for (const r of reactions) {
     if (!reactionsByRound[r.round_id]) reactionsByRound[r.round_id] = [];
     reactionsByRound[r.round_id].push(r);
   }
 
-  // Group comments by round with player names
   const commentsByRound: Record<string, CommentWithPlayer[]> = {};
   for (const c of (commentsResult.data || []) as Array<
     RoundComment & { player: { display_name: string } }
@@ -124,7 +112,6 @@ export default async function FeedPage() {
     commentsByRound[c.round_id].push(comment);
   }
 
-  // Process upcoming rounds
   const upcomingRoundsRaw = (upcomingResult.data || []) as Array<
     UpcomingRound & { organizer: { display_name: string } }
   >;
@@ -140,7 +127,6 @@ export default async function FeedPage() {
     })
   );
 
-  // Fetch RSVPs for upcoming rounds
   const upcomingIds = upcomingRounds.map((ur) => ur.id);
   const rsvpsByRound: Record<string, RsvpWithPlayer[]> = {};
   if (upcomingIds.length > 0) {
@@ -166,7 +152,6 @@ export default async function FeedPage() {
     }
   }
 
-  // Generate milestones and weekly recap
   const milestones = generateMilestones(rounds, standings, season);
   const weeklyRecap = generateWeeklyRecap(rounds, standings);
 

@@ -1,4 +1,4 @@
-import type { FeedRound, SeasonStanding, Season, Milestone } from "./types";
+import type { FeedRound, SeasonStanding, Season, Milestone, WeeklyRecapData } from "./types";
 
 /**
  * Generate milestone cards from recent rounds and current standings.
@@ -12,14 +12,9 @@ export function generateMilestones(
   const milestones: Milestone[] = [];
   if (!rounds.length) return milestones;
 
-  // Sort rounds by created_at desc (most recent first)
-  const sorted = [...rounds].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
-
-  // Only look at rounds from the last 7 days for milestone generation
+  // rounds are already ordered desc by created_at from the DB query
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const recentRounds = sorted.filter(
+  const recentRounds = rounds.filter(
     (r) => new Date(r.created_at).getTime() > sevenDaysAgo
   );
 
@@ -168,13 +163,7 @@ export function generateMilestones(
 export function generateWeeklyRecap(
   rounds: FeedRound[],
   standings: SeasonStanding[]
-): {
-  weekLabel: string;
-  roundsPosted: number;
-  bestRound: { playerName: string; courseName: string; points: number } | null;
-  totalPoints: number;
-  biggestMover: { playerName: string; rank: number } | null;
-} | null {
+): WeeklyRecapData | null {
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 

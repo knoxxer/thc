@@ -3,11 +3,8 @@
 import Link from "next/link";
 import ReactionBar from "./ReactionBar";
 import CommentSection from "./CommentSection";
-import type { FeedRound, RoundReaction, RoundComment } from "@/lib/types";
-
-interface CommentWithPlayer extends RoundComment {
-  player_name: string;
-}
+import type { FeedRound, RoundReaction, CommentWithPlayer } from "@/lib/types";
+import { formatVsPar } from "@/lib/format";
 
 interface FeedCardProps {
   round: FeedRound;
@@ -21,11 +18,6 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function formatVsPar(netVsPar: number): string {
-  if (netVsPar === 0) return "E";
-  return netVsPar > 0 ? `+${netVsPar}` : `${netVsPar}`;
-}
-
 export default function FeedCard({
   round,
   reactions,
@@ -34,7 +26,6 @@ export default function FeedCard({
 }: FeedCardProps) {
   return (
     <div className="bg-surface rounded-xl border border-surface-light p-4 sm:p-5">
-      {/* Header: avatar + name + date */}
       <div className="flex items-center gap-3 mb-3">
         <Link href={`/players/${round.player.slug}`}>
           <div className="w-9 h-9 bg-accent rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
@@ -55,7 +46,6 @@ export default function FeedCard({
         </span>
       </div>
 
-      {/* Score breakdown */}
       <div className="flex items-center gap-2 text-sm mb-3">
         <span className="text-white/70">{round.gross_score} gross</span>
         <span className="text-muted">&middot;</span>
@@ -66,7 +56,6 @@ export default function FeedCard({
         <span className="text-gold font-bold">{round.points ?? 0} pts</span>
       </div>
 
-      {/* Reactions */}
       <ReactionBar
         roundId={round.id}
         reactions={reactions}
@@ -74,7 +63,6 @@ export default function FeedCard({
         roundOwnerId={round.player_id}
       />
 
-      {/* Comments */}
       <CommentSection
         roundId={round.id}
         comments={comments}

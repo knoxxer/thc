@@ -1,10 +1,4 @@
-interface WeeklyRecapData {
-  weekLabel: string;
-  roundsPosted: number;
-  bestRound: { playerName: string; courseName: string; points: number } | null;
-  totalPoints: number;
-  biggestMover: { playerName: string; rank: number } | null;
-}
+import type { WeeklyRecapData } from "@/lib/types";
 
 interface WeeklyRecapCardProps {
   recap: WeeklyRecapData;
