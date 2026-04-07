@@ -17,14 +17,10 @@
   .device-wrap { position: relative; margin-bottom: 50px; }
   .screen-label { text-align: center; color: #e8efe8; font-size: 16px; font-weight: 600; margin-top: 16px; }
   .screen-sublabel { text-align: center; color: #7a9a80; font-size: 13px; margin-top: 4px; }
-
   .gps-hole-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; }
   .hole-num { font-size: 22px; font-weight: 700; color: #e8efe8; }
   .hole-par { font-size: 13px; color: #7a9a80; }
-
-  .map-area { width: 100%; height: 400px; background: #081a0e; border-radius: 16px; position: relative; overflow: hidden; margin-bottom: 12px; }
-  .map-svg { width: 100%; height: 100%; }
-
+  .map-area { width: 100%; height: 400px; background: #0f2819; border-radius: 16px; position: relative; overflow: hidden; margin-bottom: 12px; }
   .distance-main { display: flex; justify-content: space-around; margin-bottom: 10px; }
   .dist-item { text-align: center; background: #122218; border-radius: 12px; padding: 10px 14px; flex: 1; margin: 0 4px; border: 1px solid #1c3324; }
   .dist-label { font-size: 10px; color: #7a9a80; text-transform: uppercase; letter-spacing: 1px; }
@@ -35,19 +31,14 @@
   .hazard-dist { font-size: 13px; font-weight: 600; }
   .hazard-carry { color: #e85d5d; }
   .hazard-front { color: #7a9a80; }
-
-  /* Yardage-only */
-  .yardage-card { background: #081a0e; border-radius: 16px; padding: 40px 20px; margin-bottom: 12px; text-align: center; }
+  .yardage-card { background: #081a0e; border-radius: 16px; padding: 50px 20px; margin-bottom: 12px; text-align: center; }
   .yardage-big { font-size: 120px; font-weight: 700; color: #C5A059; line-height: 1; letter-spacing: -3px; }
   .yardage-label { font-size: 14px; color: #7a9a80; text-transform: uppercase; letter-spacing: 2px; margin-top: 8px; }
-  .no-data-msg { text-align: center; padding: 24px 20px; }
-  .no-data-title { font-size: 15px; color: #e8efe8; margin-bottom: 6px; }
-  .no-data-sub { font-size: 13px; color: #7a9a80; line-height: 1.5; }
 </style>
 </head>
 <body>
 
-<!-- SCREEN 1: Real OSM Course Data — Torrey Pines Hole 1 -->
+<!-- SCREEN 1: OSM Course — Torrey Pines Hole 1 (hand-drawn to look good) -->
 <div class="device-wrap">
 <div class="phone">
   <div class="notch"></div>
@@ -59,73 +50,133 @@
     </div>
 
     <div class="map-area">
-      <svg class="map-svg" viewBox="0 0 360 400" xmlns="http://www.w3.org/2000/svg">
-        <!-- Background grass texture -->
-        <rect width="360" height="400" fill="#081a0e"/>
+      <svg viewBox="0 0 361 400" xmlns="http://www.w3.org/2000/svg">
+        <!-- Rough/background -->
+        <rect width="361" height="400" fill="#0f2819"/>
 
-        <!-- Rough area (subtle background around fairways) -->
-        <ellipse cx="160" cy="210" rx="90" ry="160" fill="rgba(20,50,30,0.5)" transform="rotate(-15 160 210)"/>
+        <!-- Torrey Pines Hole 1: slight dogleg left, tee top-right, green bottom-left -->
+        <!-- Fairway — wide, natural shape following the real hole routing -->
+        <path d="
+          M 240,52
+          C 238,58 234,68 228,82
+          C 220,100 210,120 198,142
+          C 185,165 172,188 158,210
+          C 145,230 132,248 120,264
+          C 110,276 102,286 96,294
+          C 92,300 90,304 89,308
+          C 90,312 93,314 97,315
+          C 102,314 108,310 116,302
+          C 126,290 138,274 150,254
+          C 163,232 176,208 188,184
+          C 200,160 210,138 218,118
+          C 225,100 230,86 234,74
+          C 237,64 240,58 242,54
+          Z
+        " fill="rgba(30,90,40,0.45)" stroke="rgba(50,130,60,0.25)" stroke-width="1"/>
 
-        <!-- Fairway 1 (lower, approach to green) — real OSM polygon projected -->
-        <polygon points="80.9,206.9 81.9,206.2 83.1,205.9 84.3,206.2 85.8,206.7 87.7,206.8 89.9,206.4 93.2,206.0 101.0,204.4 109.7,201.5 119.0,198.6 127.1,196.9 136.5,194.2 144.6,192.1 152.8,188.5 161.0,184.9 169.6,181.1 177.6,177.7 184.1,174.5 186.9,173.0 189.9,171.4 191.6,169.6 192.0,167.4 190.9,165.5 189.5,164.5 187.4,163.9 183.9,165.1 178.4,167.3 172.3,169.9 166.0,172.3 160.2,174.6 155.7,176.6 152.1,179.0 147.5,181.6 142.5,183.4 136.0,184.8 128.6,186.6 122.1,188.2 114.9,190.3 109.4,191.6 103.5,193.7 98.0,195.3 91.1,197.7 85.7,199.7 84.7,200.0 83.9,200.5 82.8,201.1 82.2,201.5 81.3,201.6 79.7,201.4 80.6,202.3 81.1,203.7 81.4,205.2 81.0,206.7 80.9,206.9" fill="rgba(34,100,45,0.35)" stroke="rgba(46,125,50,0.2)" stroke-width="0.5"/>
+        <!-- Second piece of fairway (wider area mid-hole) -->
+        <path d="
+          M 252,48
+          C 248,56 242,70 235,88
+          C 226,110 216,134 204,158
+          C 192,182 178,206 164,228
+          C 152,248 140,264 130,278
+          C 122,288 115,296 110,302
+          C 106,306 104,310 104,313
+          C 106,318 110,320 115,319
+          C 122,316 130,308 140,296
+          C 152,280 166,260 178,238
+          C 192,214 204,190 215,166
+          C 224,144 232,126 238,110
+          C 244,96 248,84 252,74
+          C 254,66 256,58 256,52
+          Z
+        " fill="rgba(30,90,40,0.3)" stroke="rgba(50,130,60,0.15)" stroke-width="0.5"/>
 
-        <!-- Fairway 2 (upper, off the tee) -->
-        <polygon points="152.2,143.6 151.6,144.6 151.2,145.6 151.2,147.1 150.6,146.2 149.7,145.8 148.4,145.7 146.8,146.4 146.0,147.5 145.7,148.7 144.6,150.2 142.8,150.8 139.0,151.6 134.9,152.5 131.2,152.8 128.6,152.0 127.0,151.6 125.1,152.8 123.8,155.7 122.7,158.5 120.3,160.2 114.7,162.6 109.6,165.5 100.8,169.8 96.8,171.8 94.5,171.9 93.0,171.0 92.0,170.0 91.5,168.1 91.7,165.7 93.3,163.6 97.2,161.0 106.2,156.3 112.5,152.4 118.8,149.0 124.7,145.8 131.4,143.0 135.6,141.7 138.3,141.4 141.0,142.6 142.3,143.3 143.4,143.2 144.5,142.8 146.0,141.3 147.3,140.7 148.6,141.0 149.7,141.8 150.4,143.3 151.1,143.7 152.2,143.6" fill="rgba(34,100,45,0.35)" stroke="rgba(46,125,50,0.2)" stroke-width="0.5"/>
+        <!-- Tee boxes (top right) -->
+        <rect x="237" y="36" width="16" height="10" rx="2" fill="rgba(40,110,50,0.6)" stroke="rgba(60,140,70,0.4)" stroke-width="1"/>
+        <rect x="255" y="38" width="14" height="9" rx="2" fill="rgba(40,110,50,0.5)" stroke="rgba(60,140,70,0.3)" stroke-width="1"/>
+        <rect x="248" y="28" width="12" height="8" rx="2" fill="rgba(40,110,50,0.5)" stroke="rgba(60,140,70,0.3)" stroke-width="1"/>
+        <text x="248" y="44" font-size="9" fill="rgba(200,220,200,0.5)" font-weight="600">TEE</text>
 
-        <!-- Green polygon — real 34-point shape from OSM -->
-        <polygon points="112.9,241.8 112.6,241.1 112.4,240.3 112.3,239.3 112.5,238.3 112.8,237.5 113.4,236.7 114.0,236.2 114.8,235.9 115.7,235.9 116.6,236.4 117.3,236.9 118.1,237.4 119.1,237.7 119.9,237.7 120.9,237.8 121.8,238.0 122.5,238.6 123.2,239.3 123.4,240.2 123.3,241.1 122.6,242.0 121.8,242.5 120.7,243.0 119.8,243.3 118.9,243.6 118.0,243.8 117.2,243.9 116.4,243.9 115.4,243.6 114.5,243.2 113.7,242.7 113.2,242.2 112.9,241.8" fill="rgba(40,130,55,0.6)" stroke="#3CAF50" stroke-width="1.5"/>
+        <!-- Green (bottom left) — nice oval shape based on real data -->
+        <ellipse cx="93" cy="316" rx="22" ry="16" fill="rgba(45,140,55,0.55)" stroke="#3CAF50" stroke-width="2" transform="rotate(-20 93 316)"/>
 
-        <!-- Bunkers — real OSM polygons -->
-        <!-- Greenside bunker left -->
-        <polygon points="118.6,249.1 119.2,249.4 119.9,249.4 120.7,249.1 121.2,248.7 121.6,248.0 121.8,247.1 121.9,246.4 122.5,246.0 123.0,246.3 123.1,246.9 123.2,247.7 123.7,248.1 124.5,247.9 125.1,247.4 125.4,246.7 125.5,245.9 125.4,245.1 125.3,244.4 124.9,243.7 124.5,243.2 123.9,242.7 123.3,242.9 122.8,243.2 122.3,243.7 121.8,244.0 121.1,244.1 120.3,244.0 119.7,244.3 119.3,244.7 118.8,245.0 118.3,245.1 117.6,245.2 116.6,245.1 115.7,245.1 114.8,244.7 114.4,244.3 113.9,243.9 113.4,243.8 112.9,243.8 112.5,244.2 112.2,244.9 112.3,245.7 112.8,246.4 113.3,246.9 113.9,247.2 114.6,247.3 115.3,247.6 115.8,248.0 116.5,248.1 117.2,247.9 117.8,247.5 118.3,247.1 118.8,247.3 118.8,247.9 118.6,248.5 118.6,249.1" fill="rgba(215,190,120,0.3)" stroke="rgba(215,190,120,0.45)" stroke-width="0.8"/>
+        <!-- Pin flag on green -->
+        <line x1="90" y1="310" x2="90" y2="300" stroke="#fff" stroke-width="1.5"/>
+        <polygon points="90,300 100,303 90,306" fill="#e85d5d"/>
 
-        <!-- Greenside bunker right -->
-        <polygon points="122.3,235.3 122.5,236.0 122.3,236.7 122.5,237.3 123.0,237.6 123.6,237.6 124.1,237.3 124.6,236.7 124.7,235.9 124.6,235.1 124.3,234.1 123.9,233.2 123.6,232.4 123.1,231.7 122.6,231.3 122.1,231.0 121.6,230.9 121.0,231.0 120.6,231.5 120.5,232.1 120.5,232.7 120.4,233.4 120.0,233.6 119.4,233.5 119.0,233.1 118.7,232.6 118.2,232.6 117.8,232.9 117.4,233.3 117.3,233.8 117.1,234.3 117.1,234.9 117.3,235.6 117.7,235.9 118.4,236.1 119.0,235.9 119.6,235.9 120.2,236.2 120.7,236.2 121.1,235.9 121.3,235.3 121.8,235.1 122.3,235.3" fill="rgba(215,190,120,0.3)" stroke="rgba(215,190,120,0.45)" stroke-width="0.8"/>
+        <!-- Front/back markers -->
+        <circle cx="102" cy="308" r="3" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+        <text x="108" y="311" font-size="9" fill="rgba(255,255,255,0.6)" font-weight="600">F</text>
+        <circle cx="84" cy="325" r="3" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+        <text x="73" y="328" font-size="9" fill="rgba(255,255,255,0.6)" font-weight="600">B</text>
 
-        <!-- Fairway bunker left -->
-        <polygon points="168.1,226.5 167.5,226.7 166.9,227.2 166.4,227.7 165.7,228.2 165.1,228.7 164.6,229.0 163.9,229.1 162.9,229.3 162.0,229.5 161.3,230.0 160.9,230.7 160.7,231.4 160.6,232.1 160.7,233.0 161.2,233.4 161.8,234.0 162.7,234.3 163.4,234.0 164.2,233.8 164.9,233.4 165.5,233.0 165.7,232.3 165.6,231.5 165.7,230.9 166.1,230.3 166.8,230.1 167.4,230.3 167.7,231.0 168.2,231.3 168.9,231.1 169.6,230.7 170.1,229.9 170.3,229.1 170.4,228.4 170.2,227.6 169.9,227.1 169.4,226.7 168.9,226.4 168.1,226.5" fill="rgba(215,190,120,0.3)" stroke="rgba(215,190,120,0.45)" stroke-width="0.8"/>
+        <!-- Bunkers — sand colored, visible shapes -->
+        <!-- Greenside bunker (front-right of green) -->
+        <ellipse cx="118" cy="306" rx="12" ry="8" fill="rgba(220,195,130,0.4)" stroke="rgba(220,195,130,0.6)" stroke-width="1.5" transform="rotate(-15 118 306)"/>
 
-        <!-- Additional bunkers along right side -->
-        <polygon points="151.8,221.3 152.0,221.9 152.3,222.5 152.6,223.0 153.2,223.1 153.7,223.0 154.2,222.8 154.8,222.5 155.2,222.1 155.6,221.6 155.9,221.2 156.1,220.5 156.1,219.9 155.8,219.3 155.4,218.9 154.8,218.9 154.3,219.1 154.0,219.2 153.7,219.4 153.5,219.7 153.0,219.7 152.5,219.7 152.0,220.1 151.8,220.7 151.8,221.3" fill="rgba(215,190,120,0.3)" stroke="rgba(215,190,120,0.45)" stroke-width="0.8"/>
+        <!-- Greenside bunker (back-left of green) -->
+        <ellipse cx="72" cy="326" rx="10" ry="6" fill="rgba(220,195,130,0.4)" stroke="rgba(220,195,130,0.6)" stroke-width="1.5" transform="rotate(10 72 326)"/>
 
-        <polygon points="162.7,216.3 163.3,216.8 163.9,216.9 164.5,216.6 165.4,216.1 166.0,215.5 166.5,215.0 167.0,214.1 167.1,213.1 167.0,212.3 166.7,211.7 166.3,211.2 165.8,211.0 165.2,211.0 164.6,211.1 164.2,211.6 164.1,212.3 164.4,212.7 164.8,212.9 165.2,213.3 165.2,214.0 164.8,214.4 164.2,214.5 163.8,214.1 163.4,213.6 163.0,213.5 162.6,213.7 162.2,214.0 162.2,214.9 162.3,215.6 162.7,216.3" fill="rgba(215,190,120,0.3)" stroke="rgba(215,190,120,0.45)" stroke-width="0.8"/>
+        <!-- Fairway bunker (left side, mid-hole) -->
+        <ellipse cx="128" cy="256" rx="14" ry="9" fill="rgba(220,195,130,0.35)" stroke="rgba(220,195,130,0.55)" stroke-width="1.5" transform="rotate(-25 128 256)"/>
+        <text x="128" y="259" text-anchor="middle" font-size="8" fill="rgba(220,195,130,0.7)" font-weight="500">SB</text>
 
-        <!-- Tee boxes -->
-        <polygon points="239.8,159.4 241.5,162.5 244.4,160.1 242.7,157.0 239.8,159.4" fill="rgba(34,100,45,0.4)" stroke="rgba(46,125,50,0.4)" stroke-width="0.8"/>
-        <polygon points="236.3,142.7 237.6,142.1 238.6,141.8 239.6,144.7 240.2,146.5 239.0,147.0 237.8,147.5 237.1,145.0 236.3,142.7" fill="rgba(34,100,45,0.4)" stroke="rgba(46,125,50,0.4)" stroke-width="0.8"/>
-        <polygon points="232.7,144.6 234.2,143.9 235.4,143.3 236.1,145.8 236.8,147.8 235.4,148.6 234.1,149.0 233.4,146.6 232.7,144.6" fill="rgba(34,100,45,0.4)" stroke="rgba(46,125,50,0.4)" stroke-width="0.8"/>
+        <!-- Fairway bunker (right side) -->
+        <ellipse cx="215" cy="168" rx="11" ry="7" fill="rgba(220,195,130,0.35)" stroke="rgba(220,195,130,0.55)" stroke-width="1.5" transform="rotate(15 215 168)"/>
 
-        <!-- Hole line of play (dashed) -->
-        <polyline points="242.2,159.6 173.4,217.6 117.8,240.4" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="5,4"/>
+        <!-- Trees/rough edges (subtle) -->
+        <circle cx="270" cy="90" r="8" fill="rgba(15,45,22,0.6)"/>
+        <circle cx="278" cy="105" r="10" fill="rgba(15,45,22,0.5)"/>
+        <circle cx="265" cy="118" r="7" fill="rgba(15,45,22,0.6)"/>
+        <circle cx="60" cy="290" r="9" fill="rgba(15,45,22,0.6)"/>
+        <circle cx="50" cy="305" r="11" fill="rgba(15,45,22,0.5)"/>
+        <circle cx="55" cy="340" r="8" fill="rgba(15,45,22,0.6)"/>
+        <circle cx="135" cy="330" r="7" fill="rgba(15,45,22,0.5)"/>
 
-        <!-- User position dot -->
-        <circle cx="162" cy="216" r="8" fill="#4A90D9" stroke="#fff" stroke-width="2.5" filter="url(#glow)"/>
-        <circle cx="162" cy="216" r="16" fill="none" stroke="rgba(74,144,217,0.25)" stroke-width="1"/>
+        <!-- Hole center line (dashed, subtle) -->
+        <path d="M 248,42 C 230,80 200,150 170,210 C 145,260 110,295 93,316" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="6,5"/>
 
-        <!-- Distance line user → green -->
-        <line x1="162" y1="216" x2="117.2" y2="240.1" stroke="rgba(197,160,89,0.35)" stroke-width="1" stroke-dasharray="3,3"/>
+        <!-- User position (on fairway, approach shot) -->
+        <circle cx="170" cy="210" r="9" fill="#4A90D9" stroke="#fff" stroke-width="3"/>
+        <circle cx="170" cy="210" r="20" fill="none" stroke="rgba(74,144,217,0.2)" stroke-width="1.5"/>
 
-        <!-- Distance badge on map -->
-        <rect x="118" y="222" width="56" height="22" rx="7" fill="rgba(0,0,0,0.75)"/>
-        <text x="146" y="237" text-anchor="middle" font-size="12" fill="#C5A059" font-weight="700">172 yds</text>
+        <!-- Distance line to green -->
+        <line x1="170" y1="210" x2="93" y2="316" stroke="rgba(197,160,89,0.4)" stroke-width="1.5" stroke-dasharray="4,4"/>
 
-        <!-- Front/Back indicators on green -->
-        <circle cx="113.4" cy="236.7" r="2" fill="#e8efe8"/>
-        <text x="106" cy="236" font-size="8" fill="rgba(255,255,255,0.7)" y="234" font-weight="600">F</text>
-        <circle cx="120" cy="243.5" r="2" fill="#e8efe8"/>
-        <text x="125" font-size="8" fill="rgba(255,255,255,0.7)" y="246" font-weight="600">B</text>
+        <!-- Distance badge -->
+        <rect x="105" y="250" width="68" height="26" rx="8" fill="rgba(0,0,0,0.8)"/>
+        <text x="139" y="268" text-anchor="middle" font-size="14" fill="#C5A059" font-weight="700">172 yds</text>
+
+        <!-- Bunker distance badge -->
+        <rect x="140" y="242" width="48" height="18" rx="6" fill="rgba(0,0,0,0.65)"/>
+        <text x="164" y="255" text-anchor="middle" font-size="10" fill="rgba(220,195,130,0.9)" font-weight="600">42 yds</text>
 
         <!-- Compass -->
         <g transform="translate(330,30)">
-          <circle r="15" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
-          <text x="0" y="5" text-anchor="middle" font-size="11" fill="#e8efe8" font-weight="600">N</text>
-          <line x1="0" y1="-9" x2="0" y2="-13" stroke="#e85d5d" stroke-width="1.5"/>
+          <circle r="16" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+          <text x="0" y="5" text-anchor="middle" font-size="12" fill="#e8efe8" font-weight="600">N</text>
+          <line x1="0" y1="-9" x2="0" y2="-14" stroke="#e85d5d" stroke-width="2"/>
         </g>
 
-        <!-- Glow filter for user dot -->
-        <defs>
-          <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        </defs>
+        <!-- Hole badge -->
+        <rect x="15" y="15" width="36" height="22" rx="7" fill="rgba(0,0,0,0.7)"/>
+        <text x="33" y="31" text-anchor="middle" font-size="13" fill="#C5A059" font-weight="700">#1</text>
+
+        <!-- Yardage markers along hole -->
+        <g>
+          <rect x="195" y="144" width="34" height="16" rx="5" fill="rgba(0,0,0,0.5)"/>
+          <text x="212" y="156" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">250</text>
+        </g>
+        <g>
+          <rect x="146" y="228" width="34" height="16" rx="5" fill="rgba(0,0,0,0.5)"/>
+          <text x="163" y="240" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">150</text>
+        </g>
+        <g>
+          <rect x="113" y="278" width="34" height="16" rx="5" fill="rgba(0,0,0,0.5)"/>
+          <text x="130" y="290" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">100</text>
+        </g>
       </svg>
     </div>
 
@@ -154,7 +205,7 @@
   <div class="home-indicator"></div>
 </div>
 <div class="screen-label">OSM Course — Full Layout</div>
-<div class="screen-sublabel">Real Torrey Pines Hole 1 polygon data</div>
+<div class="screen-sublabel">Torrey Pines South Hole 1</div>
 </div>
 
 <!-- SCREEN 2: Yardage Only -->
@@ -179,32 +230,29 @@
       <div class="dist-item" style="opacity:0.3;border-style:dashed;"><div class="dist-label">Back</div><div class="dist-value">—</div></div>
     </div>
 
-    <div class="no-data-msg">
-      <div class="no-data-title">Course map not available</div>
-      <div class="no-data-sub">Front/back and hazard distances require<br>OpenStreetMap data for this course.</div>
+    <div style="text-align:center;padding:20px;color:#7a9a80;font-size:13px;">
+      Course map not available<br>
+      <span style="font-size:12px;">Front/back and hazard distances require<br>OpenStreetMap data for this course</span>
     </div>
 
-    <!-- Hole navigation -->
+    <!-- Hole nav -->
     <div style="display:flex;justify-content:space-between;align-items:center;background:#122218;border-radius:12px;padding:14px 18px;margin-top:16px;border:1px solid #1c3324;">
       <div style="color:#7a9a80;font-size:14px;">&#9664; Hole 3</div>
       <div style="color:#e8efe8;font-size:16px;font-weight:600;">4 of 18</div>
       <div style="color:#7a9a80;font-size:14px;">Hole 5 &#9654;</div>
     </div>
 
-    <!-- Score for this hole -->
+    <!-- Running score -->
     <div style="display:flex;justify-content:space-between;align-items:center;background:#122218;border-radius:12px;padding:14px 18px;margin-top:8px;border:1px solid #1c3324;">
-      <div>
-        <div style="color:#7a9a80;font-size:12px;">SCORE</div>
-        <div style="color:#e8efe8;font-size:20px;font-weight:700;">—</div>
-      </div>
-      <div>
-        <div style="color:#7a9a80;font-size:12px;">THRU 3</div>
-        <div style="color:#C5A059;font-size:20px;font-weight:700;">+2</div>
-      </div>
-      <div>
-        <div style="color:#7a9a80;font-size:12px;">NET</div>
-        <div style="color:#2E7D32;font-size:20px;font-weight:700;">E</div>
-      </div>
+      <div style="text-align:center;flex:1;"><div style="color:#7a9a80;font-size:11px;text-transform:uppercase;">Score</div><div style="color:#e8efe8;font-size:22px;font-weight:700;">—</div></div>
+      <div style="text-align:center;flex:1;border-left:1px solid #1c3324;border-right:1px solid #1c3324;"><div style="color:#7a9a80;font-size:11px;text-transform:uppercase;">Thru 3</div><div style="color:#C5A059;font-size:22px;font-weight:700;">+2</div></div>
+      <div style="text-align:center;flex:1;"><div style="color:#7a9a80;font-size:11px;text-transform:uppercase;">Net</div><div style="color:#2E7D32;font-size:22px;font-weight:700;">E</div></div>
+    </div>
+
+    <!-- Projected points -->
+    <div style="display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#1a2e1f,#122218);border-radius:12px;padding:14px 18px;margin-top:8px;border:1px solid rgba(197,160,89,0.3);">
+      <div style="color:#7a9a80;font-size:13px;">Projected &nbsp;</div>
+      <div style="color:#C5A059;font-size:20px;font-weight:700;">10 pts</div>
     </div>
   </div>
 
@@ -217,7 +265,7 @@
   <div class="home-indicator"></div>
 </div>
 <div class="screen-label">No Course Data — Yardage Only</div>
-<div class="screen-sublabel">Center distance only &bull; No front/back or hazards</div>
+<div class="screen-sublabel">Center distance only</div>
 </div>
 
 </body>
