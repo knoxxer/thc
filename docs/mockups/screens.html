@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif; display: flex; flex-wrap: wrap; gap: 40px; padding: 40px; justify-content: center; }
+
+  .phone { width: 393px; height: 852px; background: #0a1a0f; border-radius: 47px; overflow: hidden; border: 4px solid #333; position: relative; flex-shrink: 0; }
+  .status-bar { height: 54px; display: flex; justify-content: space-between; align-items: center; padding: 14px 30px 0; color: #fff; font-size: 15px; font-weight: 600; }
+  .notch { width: 126px; height: 34px; background: #000; border-radius: 0 0 20px 20px; position: absolute; top: 0; left: 50%; transform: translateX(-50%); }
+  .screen { padding: 0 20px; height: calc(100% - 54px - 83px); overflow: hidden; }
+  .tab-bar { height: 83px; background: rgba(18,34,24,0.95); border-top: 0.5px solid #1c3324; display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; position: absolute; bottom: 0; width: 100%; backdrop-filter: blur(20px); }
+  .tab { text-align: center; color: #7a9a80; font-size: 10px; }
+  .tab.active { color: #C5A059; }
+  .tab-icon { font-size: 24px; margin-bottom: 2px; }
+  .home-indicator { width: 134px; height: 5px; background: #fff; border-radius: 3px; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); opacity: 0.3; }
+
+  /* Colors */
+  .gold { color: #C5A059; }
+  .green { color: #2E7D32; }
+  .muted { color: #7a9a80; }
+  .white { color: #e8efe8; }
+  .surface { background: #122218; }
+
+  /* Leaderboard */
+  .page-title { font-family: 'Oswald', sans-serif; font-size: 28px; font-weight: 700; color: #C5A059; text-transform: uppercase; letter-spacing: 3px; text-align: center; margin: 16px 0 4px; }
+  .page-subtitle { font-size: 13px; color: #7a9a80; text-align: center; margin-bottom: 16px; }
+  .leaderboard-row { display: flex; align-items: center; padding: 14px 16px; background: #122218; border-radius: 12px; margin-bottom: 8px; border: 1px solid #1c3324; }
+  .leaderboard-row.first { border-color: #C5A059; background: linear-gradient(135deg, #1a2e1f 0%, #122218 100%); }
+  .rank { width: 32px; font-size: 18px; font-weight: 700; color: #7a9a80; }
+  .rank.gold-rank { color: #C5A059; }
+  .avatar { width: 40px; height: 40px; border-radius: 20px; background: #1c3324; margin-right: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: #C5A059; }
+  .player-info { flex: 1; }
+  .player-name { font-size: 16px; font-weight: 600; color: #e8efe8; }
+  .player-meta { font-size: 12px; color: #7a9a80; margin-top: 2px; }
+  .points { text-align: right; }
+  .points-value { font-size: 22px; font-weight: 700; color: #C5A059; }
+  .points-label { font-size: 10px; color: #7a9a80; text-transform: uppercase; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; background: rgba(46,125,50,0.2); color: #2E7D32; margin-left: 8px; }
+  .badge.ineligible { background: rgba(197,160,89,0.15); color: #C5A059; }
+
+  /* GPS Screen */
+  .gps-hole-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
+  .hole-num { font-size: 24px; font-weight: 700; color: #e8efe8; }
+  .hole-par { font-size: 14px; color: #7a9a80; }
+  .hole-yards { font-size: 14px; color: #7a9a80; }
+  .map-area { width: 100%; height: 340px; background: linear-gradient(160deg, #0d2818 0%, #1a3d25 30%, #0f2d1a 60%, #163522 100%); border-radius: 16px; position: relative; overflow: hidden; margin-bottom: 16px; }
+  .fairway { position: absolute; width: 80px; background: linear-gradient(to bottom, rgba(46,125,50,0.3), rgba(46,125,50,0.15)); height: 240px; left: 50%; transform: translateX(-50%); top: 30px; border-radius: 30px 30px 50px 50px; }
+  .green-circle { position: absolute; width: 50px; height: 40px; background: rgba(46,125,50,0.5); border: 2px solid #2E7D32; border-radius: 50%; top: 40px; left: 50%; transform: translateX(-50%); }
+  .bunker { position: absolute; width: 22px; height: 16px; background: rgba(210,180,120,0.4); border-radius: 50%; border: 1px solid rgba(210,180,120,0.5); }
+  .water { position: absolute; width: 60px; height: 30px; background: rgba(30,100,180,0.25); border-radius: 50%; border: 1px solid rgba(30,100,180,0.3); }
+  .user-dot { position: absolute; width: 16px; height: 16px; background: #4A90D9; border: 3px solid #fff; border-radius: 50%; bottom: 40px; left: 50%; transform: translateX(-50%); box-shadow: 0 0 12px rgba(74,144,217,0.6); }
+  .distance-badge { position: absolute; background: rgba(0,0,0,0.75); color: #fff; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 8px; backdrop-filter: blur(10px); }
+  .distance-main { display: flex; justify-content: space-around; margin-bottom: 12px; }
+  .dist-item { text-align: center; background: #122218; border-radius: 12px; padding: 12px 16px; flex: 1; margin: 0 4px; border: 1px solid #1c3324; }
+  .dist-label { font-size: 10px; color: #7a9a80; text-transform: uppercase; letter-spacing: 1px; }
+  .dist-value { font-size: 28px; font-weight: 700; color: #e8efe8; margin-top: 2px; }
+  .dist-unit { font-size: 12px; color: #7a9a80; }
+  .dist-item.center .dist-value { color: #C5A059; }
+  .hazard-row { display: flex; justify-content: space-between; background: #122218; border-radius: 10px; padding: 10px 14px; margin-bottom: 6px; border: 1px solid #1c3324; }
+  .hazard-name { font-size: 13px; color: #e8efe8; }
+  .hazard-dist { font-size: 13px; font-weight: 600; }
+  .hazard-carry { color: #e85d5d; }
+  .hazard-front { color: #7a9a80; }
+
+  /* Scoring */
+  .score-hole { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: #122218; border-radius: 12px; margin-bottom: 8px; border: 1px solid #1c3324; }
+  .score-hole-num { font-size: 14px; font-weight: 600; color: #7a9a80; width: 50px; }
+  .score-par { font-size: 12px; color: #7a9a80; width: 40px; }
+  .score-input { width: 44px; height: 44px; background: #1c3324; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #e8efe8; }
+  .score-input.birdie { background: rgba(46,125,50,0.3); color: #4CAF50; }
+  .score-input.bogey { background: rgba(197,160,89,0.15); color: #C5A059; }
+  .score-input.double { background: rgba(232,93,93,0.15); color: #e85d5d; }
+  .score-input.active { border: 2px solid #C5A059; }
+  .score-stats { display: flex; gap: 8px; }
+  .stat-pill { font-size: 11px; padding: 4px 10px; border-radius: 12px; background: #1c3324; color: #7a9a80; }
+  .stat-pill.active { background: rgba(46,125,50,0.2); color: #2E7D32; }
+  .score-summary { background: linear-gradient(135deg, #1a2e1f 0%, #122218 100%); border: 1px solid #C5A059; border-radius: 16px; padding: 20px; margin-top: 12px; }
+  .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .summary-label { color: #7a9a80; font-size: 14px; }
+  .summary-value { color: #e8efe8; font-size: 14px; font-weight: 600; }
+
+  /* Watch */
+  .watch { width: 198px; height: 242px; background: #0a1a0f; border-radius: 40px; border: 3px solid #444; position: relative; overflow: hidden; flex-shrink: 0; }
+  .watch .screen { padding: 8px 12px; height: calc(100% - 0px); display: flex; flex-direction: column; justify-content: center; }
+  .watch-hole { font-size: 13px; color: #7a9a80; text-align: center; }
+  .watch-distance { font-size: 52px; font-weight: 700; color: #C5A059; text-align: center; line-height: 1; margin: 4px 0; }
+  .watch-label { font-size: 11px; color: #7a9a80; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+  .watch-fb { display: flex; justify-content: space-around; margin-top: 8px; }
+  .watch-fb-item { text-align: center; }
+  .watch-fb-val { font-size: 18px; font-weight: 600; color: #e8efe8; }
+  .watch-fb-label { font-size: 9px; color: #7a9a80; text-transform: uppercase; }
+  .watch-hazard { font-size: 11px; color: #e85d5d; text-align: center; margin-top: 6px; }
+
+  .screen-label { position: absolute; bottom: -30px; left: 0; right: 0; text-align: center; color: #7a9a80; font-size: 14px; font-weight: 500; }
+  .device-wrap { position: relative; margin-bottom: 40px; }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: Leaderboard -->
+<div class="device-wrap">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="status-bar"><span>9:41</span><span></span></div>
+  <div class="screen">
+    <div class="page-title">The Homie Cup</div>
+    <div class="page-subtitle">Season 1 &bull; 6 of 12 months</div>
+
+    <div class="leaderboard-row first">
+      <div class="rank gold-rank">1</div>
+      <div class="avatar">MK</div>
+      <div class="player-info">
+        <div class="player-name">Mike K.</div>
+        <div class="player-meta">HI 12.4 &bull; 8 rounds</div>
+      </div>
+      <div class="points"><div class="points-value">98</div><div class="points-label">points</div></div>
+    </div>
+
+    <div class="leaderboard-row">
+      <div class="rank gold-rank">2</div>
+      <div class="avatar">JT</div>
+      <div class="player-info">
+        <div class="player-name">Jake T.</div>
+        <div class="player-meta">HI 8.1 &bull; 10 rounds</div>
+      </div>
+      <div class="points"><div class="points-value">94</div><div class="points-label">points</div></div>
+    </div>
+
+    <div class="leaderboard-row">
+      <div class="rank">3</div>
+      <div class="avatar">DP</div>
+      <div class="player-info">
+        <div class="player-name">Danny P.</div>
+        <div class="player-meta">HI 15.2 &bull; 7 rounds</div>
+      </div>
+      <div class="points"><div class="points-value">87</div><div class="points-label">points</div></div>
+    </div>
+
+    <div class="leaderboard-row">
+      <div class="rank">4</div>
+      <div class="avatar">AS</div>
+      <div class="player-info">
+        <div class="player-name">Alex S.</div>
+        <div class="player-meta">HI 22.7 &bull; 6 rounds</div>
+      </div>
+      <div class="points"><div class="points-value">71</div><div class="points-label">points</div></div>
+    </div>
+
+    <div class="leaderboard-row">
+      <div class="rank">5</div>
+      <div class="avatar">RG</div>
+      <div class="player-info">
+        <div class="player-name">Ryan G.<span class="badge ineligible">2 more rounds</span></div>
+        <div class="player-meta">HI 18.3 &bull; 3 rounds</div>
+      </div>
+      <div class="points"><div class="points-value">34</div><div class="points-label">points</div></div>
+    </div>
+
+    <div class="leaderboard-row">
+      <div class="rank">6</div>
+      <div class="avatar">BL</div>
+      <div class="player-info">
+        <div class="player-name">Brian L.<span class="badge ineligible">3 more rounds</span></div>
+        <div class="player-meta">HI 28.1 &bull; 2 rounds</div>
+      </div>
+      <div class="points"><div class="points-value">19</div><div class="points-label">points</div></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active"><div class="tab-icon">&#127942;</div>Standings</div>
+    <div class="tab"><div class="tab-icon">&#9971;</div>GPS</div>
+    <div class="tab"><div class="tab-icon">&#128221;</div>Score</div>
+    <div class="tab"><div class="tab-icon">&#128100;</div>Profile</div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+<div class="screen-label">Leaderboard</div>
+</div>
+
+<!-- SCREEN 2: GPS Hole Overview -->
+<div class="device-wrap">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="status-bar"><span>10:23</span><span></span></div>
+  <div class="screen">
+    <div class="gps-hole-header">
+      <div><div class="hole-num">Hole 7</div><div class="hole-par">Par 4 &bull; 432 yds &bull; SI 5</div></div>
+      <div style="text-align:right"><div style="font-size:12px;color:#7a9a80;">Torrey Pines South</div><div style="font-size:12px;color:#2E7D32;">&#9679; Live</div></div>
+    </div>
+
+    <div class="map-area">
+      <div class="fairway"></div>
+      <div class="green-circle"></div>
+      <div class="bunker" style="top:55px;left:calc(50% + 35px);"></div>
+      <div class="bunker" style="top:48px;left:calc(50% - 52px);"></div>
+      <div class="water" style="top:150px;left:calc(50% - 80px);"></div>
+      <div class="user-dot"></div>
+      <div class="distance-badge" style="top:65px;left:50%;transform:translateX(-50%);">GREEN</div>
+      <div class="distance-badge" style="top:155px;left:calc(50% - 110px);">&#128167; 187</div>
+    </div>
+
+    <div class="distance-main">
+      <div class="dist-item"><div class="dist-label">Front</div><div class="dist-value">158</div></div>
+      <div class="dist-item center"><div class="dist-label">Center</div><div class="dist-value">172</div></div>
+      <div class="dist-item"><div class="dist-label">Back</div><div class="dist-value">186</div></div>
+    </div>
+
+    <div class="hazard-row">
+      <div class="hazard-name">&#128167; Left water</div>
+      <div><span class="hazard-dist hazard-front">Front 145</span> &nbsp; <span class="hazard-dist hazard-carry">Carry 187</span></div>
+    </div>
+    <div class="hazard-row">
+      <div class="hazard-name">&#9898; Right bunker</div>
+      <div><span class="hazard-dist hazard-front">Front 152</span> &nbsp; <span class="hazard-dist hazard-carry">Carry 168</span></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><div class="tab-icon">&#127942;</div>Standings</div>
+    <div class="tab active"><div class="tab-icon">&#9971;</div>GPS</div>
+    <div class="tab"><div class="tab-icon">&#128221;</div>Score</div>
+    <div class="tab"><div class="tab-icon">&#128100;</div>Profile</div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+<div class="screen-label">GPS — Hole Overview</div>
+</div>
+
+<!-- SCREEN 3: Live Scoring -->
+<div class="device-wrap">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="status-bar"><span>11:45</span><span></span></div>
+  <div class="screen">
+    <div class="page-title" style="font-size:22px;margin-bottom:12px;">Scorecard</div>
+    <div style="font-size:13px;color:#7a9a80;text-align:center;margin-bottom:16px;">Torrey Pines South &bull; Thru 7</div>
+
+    <div class="score-hole">
+      <div class="score-hole-num">Hole 1</div>
+      <div class="score-par">Par 4</div>
+      <div class="score-stats"><div class="stat-pill active">FIR</div><div class="stat-pill">GIR</div><div class="stat-pill">2 putts</div></div>
+      <div class="score-input bogey">5</div>
+    </div>
+    <div class="score-hole">
+      <div class="score-hole-num">Hole 2</div>
+      <div class="score-par">Par 4</div>
+      <div class="score-stats"><div class="stat-pill active">FIR</div><div class="stat-pill active">GIR</div><div class="stat-pill">1 putt</div></div>
+      <div class="score-input birdie">3</div>
+    </div>
+    <div class="score-hole">
+      <div class="score-hole-num">Hole 3</div>
+      <div class="score-par">Par 3</div>
+      <div class="score-stats"><div class="stat-pill">-</div><div class="stat-pill active">GIR</div><div class="stat-pill">2 putts</div></div>
+      <div class="score-input">3</div>
+    </div>
+    <div class="score-hole">
+      <div class="score-hole-num">Hole 4</div>
+      <div class="score-par">Par 4</div>
+      <div class="score-stats"><div class="stat-pill active">FIR</div><div class="stat-pill">GIR</div><div class="stat-pill">2 putts</div></div>
+      <div class="score-input">4</div>
+    </div>
+    <div class="score-hole">
+      <div class="score-hole-num">Hole 5</div>
+      <div class="score-par">Par 4</div>
+      <div class="score-stats"><div class="stat-pill">Miss L</div><div class="stat-pill">GIR</div><div class="stat-pill">3 putts</div></div>
+      <div class="score-input double">6</div>
+    </div>
+    <div class="score-hole">
+      <div class="score-hole-num">Hole 6</div>
+      <div class="score-par">Par 5</div>
+      <div class="score-stats"><div class="stat-pill active">FIR</div><div class="stat-pill active">GIR</div><div class="stat-pill">2 putts</div></div>
+      <div class="score-input">5</div>
+    </div>
+    <div class="score-hole" style="border-color:#C5A059;">
+      <div class="score-hole-num" style="color:#C5A059;">Hole 7</div>
+      <div class="score-par">Par 4</div>
+      <div class="score-stats"><div class="stat-pill">-</div><div class="stat-pill">-</div><div class="stat-pill">-</div></div>
+      <div class="score-input active">-</div>
+    </div>
+
+    <div class="score-summary">
+      <div class="summary-row"><span class="summary-label">Thru 6</span><span class="summary-value" style="color:#C5A059;">+2 (26 strokes)</span></div>
+      <div class="summary-row"><span class="summary-label">Net</span><span class="summary-value">Even par</span></div>
+      <div class="summary-row"><span class="summary-label">Projected points</span><span class="summary-value" style="color:#C5A059;">10 pts</span></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><div class="tab-icon">&#127942;</div>Standings</div>
+    <div class="tab"><div class="tab-icon">&#9971;</div>GPS</div>
+    <div class="tab active"><div class="tab-icon">&#128221;</div>Score</div>
+    <div class="tab"><div class="tab-icon">&#128100;</div>Profile</div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+<div class="screen-label">Live Scoring</div>
+</div>
+
+<!-- SCREEN 4: Apple Watch -->
+<div class="device-wrap" style="display:flex;flex-direction:column;gap:30px;align-items:center;">
+<div class="watch">
+  <div class="screen">
+    <div class="watch-hole">HOLE 7 &bull; PAR 4</div>
+    <div class="watch-distance">172</div>
+    <div class="watch-label">Center of Green</div>
+    <div class="watch-fb">
+      <div class="watch-fb-item"><div class="watch-fb-val">158</div><div class="watch-fb-label">Front</div></div>
+      <div class="watch-fb-item"><div class="watch-fb-val">186</div><div class="watch-fb-label">Back</div></div>
+    </div>
+    <div class="watch-hazard">&#128167; Water 187 carry</div>
+  </div>
+</div>
+<div style="color:#7a9a80;font-size:14px;text-align:center;">Apple Watch — GPS</div>
+
+<div class="watch">
+  <div class="screen">
+    <div style="font-size:11px;color:#7a9a80;text-align:center;text-transform:uppercase;letter-spacing:1px;">Hole 7 Score</div>
+    <div style="font-size:64px;font-weight:700;color:#e8efe8;text-align:center;line-height:1;margin:10px 0;">4</div>
+    <div style="font-size:13px;color:#2E7D32;text-align:center;">&#10003; Par</div>
+    <div style="display:flex;justify-content:center;gap:16px;margin-top:12px;">
+      <div style="width:40px;height:40px;background:#1c3324;border-radius:20px;display:flex;align-items:center;justify-content:center;color:#e8efe8;font-size:18px;">-</div>
+      <div style="width:40px;height:40px;background:rgba(197,160,89,0.2);border:2px solid #C5A059;border-radius:20px;display:flex;align-items:center;justify-content:center;color:#C5A059;font-size:18px;font-weight:700;">&#10003;</div>
+      <div style="width:40px;height:40px;background:#1c3324;border-radius:20px;display:flex;align-items:center;justify-content:center;color:#e8efe8;font-size:18px;">+</div>
+    </div>
+  </div>
+</div>
+<div style="color:#7a9a80;font-size:14px;text-align:center;">Apple Watch — Score</div>
+</div>
+
+</body>
+</html>
