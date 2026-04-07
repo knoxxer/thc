@@ -1,5 +1,7 @@
+import type { Notification } from "./types";
+
 export function sendNotification(payload: {
-  type: string;
+  type: Notification["type"];
   targetPlayerId?: string;
   notifyAll?: boolean;
   title: string;

@@ -86,7 +86,8 @@ export function generateMilestones(
   }
 
   // --- Points Milestones (50, 75, 100, etc.) ---
-  const pointsThresholds = [50, 75, 100, 125, 150];
+  // Descending so we break on the highest crossed threshold
+  const pointsThresholds = [150, 125, 100, 75, 50];
   for (const standing of standings) {
     const total = standing.best_n_points;
     for (const threshold of pointsThresholds) {
