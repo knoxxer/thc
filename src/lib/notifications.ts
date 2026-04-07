@@ -1,15 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
+import { getServiceClient } from "./supabase/service";
+import type { Notification } from "./types";
 
 interface CreateNotificationParams {
   playerId: string;
-  type: "new_round" | "reaction" | "comment" | "rsvp" | "upcoming_round";
+  type: Notification["type"];
   title: string;
   body?: string;
   link?: string;

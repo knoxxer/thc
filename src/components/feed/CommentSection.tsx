@@ -2,24 +2,8 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { RoundComment } from "@/lib/types";
-
-function timeAgo(dateStr: string): string {
-  const seconds = Math.floor(
-    (Date.now() - new Date(dateStr).getTime()) / 1000
-  );
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `${days}d`;
-}
-
-interface CommentWithPlayer extends RoundComment {
-  player_name: string;
-}
+import type { CommentWithPlayer } from "@/lib/types";
+import { timeAgo } from "@/lib/format";
 
 interface CommentSectionProps {
   roundId: string;

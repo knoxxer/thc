@@ -1,21 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
 import type { Notification } from "@/lib/types";
-
-function timeAgo(dateStr: string): string {
-  const seconds = Math.floor(
-    (Date.now() - new Date(dateStr).getTime()) / 1000
-  );
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `${days}d`;
-}
+import { timeAgo } from "@/lib/format";
 
 const typeIcons: Record<Notification["type"], string> = {
   new_round: "\u26f3",
@@ -37,26 +24,32 @@ export default function NotificationBell() {
       const res = await fetch("/api/notifications");
       if (!res.ok) return;
       const data = await res.json();
-      setNotifications(data.notifications || []);
-      setUnreadCount(data.unreadCount ?? 0);
+      setNotifications((prev) => {
+        const incoming = data.notifications || [];
+        if (prev.length === incoming.length && prev[0]?.id === incoming[0]?.id)
+          return prev;
+        return incoming;
+      });
+      setUnreadCount((prev) => {
+        const next = data.unreadCount ?? 0;
+        return prev === next ? prev : next;
+      });
     } catch {
       // silently fail
     }
   }, []);
 
   useEffect(() => {
-    // Check if user is authenticated first
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        fetchNotifications();
-        const interval = setInterval(fetchNotifications, 30000);
-        return () => clearInterval(interval);
-      }
-    });
+    // Initial fetch + poll every 30s. Using setInterval for both to avoid
+    // the lint rule about synchronous setState in effects.
+    const interval = setInterval(fetchNotifications, 30000);
+    const initial = setTimeout(fetchNotifications, 0);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(initial);
+    };
   }, [fetchNotifications]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (

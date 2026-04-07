@@ -4,70 +4,70 @@ import {
   createNotification,
   createNotificationsForAll,
 } from "@/lib/notifications";
+import type { Notification } from "@/lib/types";
 
-// GET /api/notifications — fetch current user's notifications
-export async function GET() {
-  const supabase = await createClient();
+type NotificationType = Notification["type"];
+
+const VALID_TYPES: Set<string> = new Set([
+  "new_round", "reaction", "comment", "rsvp", "upcoming_round",
+]);
+
+async function getAuthenticatedPlayer(supabase: Awaited<ReturnType<typeof createClient>>, fields = "id"):
+  Promise<{ player: { id: string; display_name?: string }; error: null } | { player: null; error: NextResponse }> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return { player: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
 
-  // Get the player for this auth user
   const { data: player } = await supabase
     .from("players")
-    .select("id")
+    .select(fields)
     .eq("auth_user_id", user.id)
     .single();
 
   if (!player) {
-    return NextResponse.json({ error: "Player not found" }, { status: 404 });
+    return { player: null, error: NextResponse.json({ error: "Player not found" }, { status: 404 }) };
   }
 
-  const { data: notifications, error } = await supabase
-    .from("notifications")
-    .select("*")
-    .eq("player_id", player.id)
-    .order("created_at", { ascending: false })
-    .limit(30);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  // Also get unread count
-  const { count } = await supabase
-    .from("notifications")
-    .select("*", { count: "exact", head: true })
-    .eq("player_id", player.id)
-    .eq("is_read", false);
-
-  return NextResponse.json({ notifications, unreadCount: count ?? 0 });
+  return { player: player as unknown as { id: string; display_name?: string }, error: null };
 }
 
-// PATCH /api/notifications — mark notifications as read
+export async function GET() {
+  const supabase = await createClient();
+  const { player, error: authError } = await getAuthenticatedPlayer(supabase);
+  if (authError) return authError;
+
+  const [notifResult, countResult] = await Promise.all([
+    supabase
+      .from("notifications")
+      .select("*")
+      .eq("player_id", player.id)
+      .order("created_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("player_id", player.id)
+      .eq("is_read", false),
+  ]);
+
+  if (notifResult.error) {
+    return NextResponse.json({ error: notifResult.error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    notifications: notifResult.data,
+    unreadCount: countResult.count ?? 0,
+  });
+}
+
 export async function PATCH(request: Request) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { data: player } = await supabase
-    .from("players")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .single();
-
-  if (!player) {
-    return NextResponse.json({ error: "Player not found" }, { status: 404 });
-  }
+  const { player, error: authError } = await getAuthenticatedPlayer(supabase);
+  if (authError) return authError;
 
   const body = await request.json();
   const { id, all } = body as { id?: string; all?: boolean };
@@ -97,26 +97,10 @@ export async function PATCH(request: Request) {
   return NextResponse.json({ success: true });
 }
 
-// POST /api/notifications — create notifications (called by other components)
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { data: player } = await supabase
-    .from("players")
-    .select("id, display_name")
-    .eq("auth_user_id", user.id)
-    .single();
-
-  if (!player) {
-    return NextResponse.json({ error: "Player not found" }, { status: 404 });
-  }
+  const { player, error: authError } = await getAuthenticatedPlayer(supabase, "id, display_name");
+  if (authError) return authError;
 
   const body = await request.json();
   const { type, targetPlayerId, title, notifBody, link, metadata, notifyAll } =
@@ -130,9 +114,15 @@ export async function POST(request: Request) {
       notifyAll?: boolean;
     };
 
+  if (!VALID_TYPES.has(type)) {
+    return NextResponse.json({ error: "Invalid notification type" }, { status: 400 });
+  }
+
+  const validType = type as NotificationType;
+
   if (notifyAll) {
     await createNotificationsForAll(player.id, {
-      type: type as "new_round" | "reaction" | "comment" | "rsvp" | "upcoming_round",
+      type: validType,
       title,
       body: notifBody,
       link,
@@ -141,7 +131,7 @@ export async function POST(request: Request) {
   } else if (targetPlayerId) {
     await createNotification({
       playerId: targetPlayerId,
-      type: type as "new_round" | "reaction" | "comment" | "rsvp" | "upcoming_round",
+      type: validType,
       title,
       body: notifBody,
       link,
