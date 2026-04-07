@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/format";
 
 interface PostUpcomingFormProps {
   currentPlayerId: string | null;
@@ -35,17 +36,13 @@ export default function PostUpcomingForm({
 
     if (!error) {
       // Notify all other players
-      fetch("/api/notifications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "upcoming_round",
-          notifyAll: true,
-          title: `Upcoming round at ${courseName.trim()}`,
-          notifBody: `${new Date(teeTime).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
-          link: "/feed",
-        }),
-      }).catch(() => {});
+      sendNotification({
+        type: "upcoming_round",
+        notifyAll: true,
+        title: `Upcoming round at ${courseName.trim()}`,
+        notifBody: new Date(teeTime).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }),
+        link: "/feed",
+      });
 
       setCourseName("");
       setTeeTime("");

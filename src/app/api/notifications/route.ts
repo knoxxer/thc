@@ -8,7 +8,7 @@ import type { Notification } from "@/lib/types";
 
 type NotificationType = Notification["type"];
 
-const VALID_TYPES: Set<string> = new Set([
+const VALID_TYPES: Set<NotificationType> = new Set<NotificationType>([
   "new_round", "reaction", "comment", "rsvp", "upcoming_round",
 ]);
 
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
       notifyAll?: boolean;
     };
 
-  if (!VALID_TYPES.has(type)) {
+  if (!VALID_TYPES.has(type as NotificationType)) {
     return NextResponse.json({ error: "Invalid notification type" }, { status: 400 });
   }
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/format";
 import type { RoundReaction } from "@/lib/types";
 
 const EMOJI_OPTIONS = ["\u26f3", "\ud83d\udd25", "\ud83c\udfcc\ufe0f", "\ud83d\udc80", "\ud83c\udfaf", "\ud83d\udc4f", "\ud83e\udd2e", "\ud83d\ude24"];
@@ -17,7 +18,6 @@ interface GroupedReaction {
   emoji: string;
   count: number;
   playerIds: string[];
-  reactionIds: string[];
 }
 
 function groupReactions(reactions: RoundReaction[]): GroupedReaction[] {
@@ -27,13 +27,11 @@ function groupReactions(reactions: RoundReaction[]): GroupedReaction[] {
     if (existing) {
       existing.count++;
       existing.playerIds.push(r.player_id);
-      existing.reactionIds.push(r.id);
     } else {
       map.set(r.emoji, {
         emoji: r.emoji,
         count: 1,
         playerIds: [r.player_id],
-        reactionIds: [r.id],
       });
     }
   }
@@ -50,7 +48,7 @@ export default function ReactionBar({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const grouped = groupReactions(reactions);
+  const grouped = useMemo(() => groupReactions(reactions), [reactions]);
 
   function findMyReaction(emoji: string) {
     return reactions.find(
@@ -63,12 +61,11 @@ export default function ReactionBar({
 
     const existing = findMyReaction(emoji);
     setLoading(true);
+    const supabase = createClient();
 
     if (existing) {
-      // Optimistic remove
       setReactions((prev) => prev.filter((r) => r.id !== existing.id));
 
-      const supabase = createClient();
       const { error } = await supabase
         .from("round_reactions")
         .delete()
@@ -78,7 +75,6 @@ export default function ReactionBar({
         setReactions((prev) => [...prev, existing]);
       }
     } else {
-      // Optimistic add
       const tempId = crypto.randomUUID();
       const newReaction: RoundReaction = {
         id: tempId,
@@ -90,7 +86,6 @@ export default function ReactionBar({
       };
       setReactions((prev) => [...prev, newReaction]);
 
-      const supabase = createClient();
       const { data, error } = await supabase
         .from("round_reactions")
         .insert({
@@ -108,18 +103,13 @@ export default function ReactionBar({
           prev.map((r) => (r.id === tempId ? { ...r, id: data.id } : r))
         );
 
-        // Notify round owner (if not self)
         if (currentPlayerId !== roundOwnerId) {
-          fetch("/api/notifications", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: "reaction",
-              targetPlayerId: roundOwnerId,
-              title: `Someone reacted ${emoji} to your round`,
-              link: "/feed",
-            }),
-          }).catch(() => {});
+          sendNotification({
+            type: "reaction",
+            targetPlayerId: roundOwnerId,
+            title: `Someone reacted ${emoji} to your round`,
+            link: "/feed",
+          });
         }
       }
     }

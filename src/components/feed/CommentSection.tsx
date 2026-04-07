@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/format";
 import type { CommentWithPlayer } from "@/lib/types";
 import { timeAgo } from "@/lib/format";
 
@@ -49,19 +50,14 @@ export default function CommentSection({
         { ...data, player_name: "You" } as CommentWithPlayer,
       ]);
 
-      // Notify round owner (if not self)
       if (currentPlayerId !== roundOwnerId) {
-        fetch("/api/notifications", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "comment",
-            targetPlayerId: roundOwnerId,
-            title: `Someone commented on your round`,
-            notifBody: body.length > 80 ? body.slice(0, 80) + "..." : body,
-            link: "/feed",
-          }),
-        }).catch(() => {});
+        sendNotification({
+          type: "comment",
+          targetPlayerId: roundOwnerId,
+          title: `Someone commented on your round`,
+          notifBody: body.length > 80 ? body.slice(0, 80) + "..." : body,
+          link: "/feed",
+        });
       }
     }
 
