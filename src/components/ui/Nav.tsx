@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import NotificationBell from "./NotificationBell";
 
 export default function Nav() {
   const [user, setUser] = useState<User | null>(null);
@@ -57,6 +58,9 @@ export default function Nav() {
           <Link href="/" className="text-white/70 hover:text-white transition-colors">
             Leaderboard
           </Link>
+          <Link href="/feed" className="text-white/70 hover:text-white transition-colors">
+            Feed
+          </Link>
           <Link href="/rules" className="text-white/70 hover:text-white transition-colors">
             Rules
           </Link>
@@ -67,6 +71,7 @@ export default function Nav() {
             <>
               {user ? (
                 <>
+                  <NotificationBell />
                   <Link
                     href="/rounds/new"
                     className="bg-gold hover:bg-gold-light text-accent px-3 py-1.5 rounded-md transition-colors text-sm font-semibold"
@@ -113,6 +118,9 @@ export default function Nav() {
         <div className="md:hidden border-t border-surface-light bg-accent/95 px-4 py-3 space-y-3">
           <Link href="/" onClick={() => setMenuOpen(false)} className="block text-white/80 hover:text-white text-sm">
             Leaderboard
+          </Link>
+          <Link href="/feed" onClick={() => setMenuOpen(false)} className="block text-white/80 hover:text-white text-sm">
+            Feed
           </Link>
           <Link href="/rules" onClick={() => setMenuOpen(false)} className="block text-white/80 hover:text-white text-sm">
             Rules
