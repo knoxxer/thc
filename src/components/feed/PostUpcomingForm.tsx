@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { sendNotification } from "@/lib/send-notification";
 
@@ -11,6 +12,7 @@ interface PostUpcomingFormProps {
 export default function PostUpcomingForm({
   currentPlayerId,
 }: PostUpcomingFormProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [courseName, setCourseName] = useState("");
   const [teeTime, setTeeTime] = useState("");
@@ -51,6 +53,7 @@ export default function PostUpcomingForm({
       setTimeout(() => {
         setSuccess(false);
         setOpen(false);
+        router.refresh();
       }, 2000);
     }
 
