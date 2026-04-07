@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { sendNotification } from "@/lib/format";
+import { sendNotification } from "@/lib/send-notification";
 import type { CommentWithPlayer } from "@/lib/types";
 import { timeAgo } from "@/lib/format";
 
