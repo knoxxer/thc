@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { sendNotification } from "@/lib/format";
+import { sendNotification } from "@/lib/send-notification";
 import type { RoundReaction } from "@/lib/types";
 
 const EMOJI_OPTIONS = ["\u26f3", "\ud83d\udd25", "\ud83c\udfcc\ufe0f", "\ud83d\udc80", "\ud83c\udfaf", "\ud83d\udc4f", "\ud83e\udd2e", "\ud83d\ude24"];
@@ -47,8 +47,20 @@ export default function ReactionBar({
   const [reactions, setReactions] = useState(initialReactions);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   const grouped = useMemo(() => groupReactions(reactions), [reactions]);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setPickerOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [pickerOpen]);
 
   function findMyReaction(emoji: string) {
     return reactions.find(
@@ -140,7 +152,7 @@ export default function ReactionBar({
       })}
 
       {currentPlayerId && (
-        <div className="relative">
+        <div className="relative" ref={pickerRef}>
           <button
             onClick={() => setPickerOpen(!pickerOpen)}
             className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-surface-light/50 border border-surface-light text-white/50 hover:text-white hover:bg-surface-light transition-colors text-sm"
