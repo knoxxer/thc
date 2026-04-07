@@ -149,30 +149,29 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('bk2').setAttribute('cx', gv.x + Math.cos(bOff2Angle) * 30);
   document.getElementById('bk2').setAttribute('cy', gv.y + Math.sin(bOff2Angle) * 30);
 
-  // ---- Screen 2: satellite only ----
+  // ---- Screen 2: same satellite, no overlays ----
+  // Reuse same Torrey Pines tiles + rotation, just with minimal overlay
   const tg2 = document.getElementById('tg2');
-  // Center the Rancho Bernardo tiles with user in middle
-  tg2.style.left = '-200px';
-  tg2.style.top = '-150px';
+  tg2.style.left = offsetX + 'px';
+  tg2.style.top = offsetY + 'px';
 
-  // User dot for screen 2
-  const u2x = 180, u2y = 170;
-  document.getElementById('user2-c').setAttribute('cx', u2x);
-  document.getElementById('user2-c').setAttribute('cy', u2y);
-  document.getElementById('user2-r').setAttribute('cx', u2x);
-  document.getElementById('user2-r').setAttribute('cy', u2y);
+  // Same user position, green pin only (no outlines, no F/B)
+  const gv2 = toVP(g.x, g.y);
+  const uv2 = toVP(u.x, u.y);
 
-  // Green pin for screen 2 (saved from tap-and-save, towards top of screen)
-  const g2x = 160, g2y = 80;
-  document.getElementById('gpin2').setAttribute('cx', g2x);
-  document.getElementById('gpin2').setAttribute('cy', g2y);
-  document.getElementById('gpin2t').setAttribute('x', g2x + 10);
-  document.getElementById('gpin2t').setAttribute('y', g2y + 4);
-  document.getElementById('dline2').setAttribute('x1', u2x);
-  document.getElementById('dline2').setAttribute('y1', u2y);
-  document.getElementById('dline2').setAttribute('x2', g2x);
-  document.getElementById('dline2').setAttribute('y2', g2y);
-  const m2x = (u2x+g2x)/2, m2y = (u2y+g2y)/2;
+  document.getElementById('gpin2').setAttribute('cx', gv2.x);
+  document.getElementById('gpin2').setAttribute('cy', gv2.y);
+  document.getElementById('gpin2t').setAttribute('x', gv2.x + 12);
+  document.getElementById('gpin2t').setAttribute('y', gv2.y + 4);
+  document.getElementById('user2-c').setAttribute('cx', uv2.x);
+  document.getElementById('user2-c').setAttribute('cy', uv2.y);
+  document.getElementById('user2-r').setAttribute('cx', uv2.x);
+  document.getElementById('user2-r').setAttribute('cy', uv2.y);
+  document.getElementById('dline2').setAttribute('x1', uv2.x);
+  document.getElementById('dline2').setAttribute('y1', uv2.y);
+  document.getElementById('dline2').setAttribute('x2', gv2.x);
+  document.getElementById('dline2').setAttribute('y2', gv2.y);
+  const m2x = (uv2.x+gv2.x)/2, m2y = (uv2.y+gv2.y)/2;
   document.getElementById('dbg2').setAttribute('x', m2x - 38);
   document.getElementById('dbg2').setAttribute('y', m2y - 15);
   document.getElementById('dtxt2').setAttribute('x', m2x);
@@ -252,13 +251,13 @@ window.addEventListener('DOMContentLoaded', () => {
   <div class="scr">
     <div class="hdr">
       <div><div class="hn">Hole 4</div><div class="hp">Par 4 · 380 yds</div></div>
-      <div style="text-align:right"><div style="font-size:12px;color:#ccc;text-shadow:0 1px 3px rgba(0,0,0,0.8)">Rancho Bernardo Inn</div><div style="font-size:12px;color:#C5A059;text-shadow:0 1px 3px rgba(0,0,0,0.8)">● Satellite</div></div>
+      <div style="text-align:right"><div style="font-size:12px;color:#ccc;text-shadow:0 1px 3px rgba(0,0,0,0.8)">Torrey Pines South</div><div style="font-size:12px;color:#C5A059;text-shadow:0 1px 3px rgba(0,0,0,0.8)">● Satellite</div></div>
     </div>
     <div class="map">
-      <div id="tg2" style="display:grid;grid-template-columns:repeat(3,256px);grid-template-rows:repeat(3,256px);position:absolute;">
-        <img src="${rb['0_0']}" style="width:256px;height:256px;display:block"><img src="${rb['0_1']}" style="width:256px;height:256px;display:block"><img src="${rb['0_2']}" style="width:256px;height:256px;display:block">
-        <img src="${rb['1_0']}" style="width:256px;height:256px;display:block"><img src="${rb['1_1']}" style="width:256px;height:256px;display:block"><img src="${rb['1_2']}" style="width:256px;height:256px;display:block">
-        <img src="${rb['2_0']}" style="width:256px;height:256px;display:block"><img src="${rb['2_1']}" style="width:256px;height:256px;display:block"><img src="${rb['2_2']}" style="width:256px;height:256px;display:block">
+      <div class="tgrid" id="tg2">
+        <img src="${tp['0_0']}"><img src="${tp['0_1']}"><img src="${tp['0_2']}">
+        <img src="${tp['1_0']}"><img src="${tp['1_1']}"><img src="${tp['1_2']}">
+        <img src="${tp['2_0']}"><img src="${tp['2_1']}"><img src="${tp['2_2']}">
       </div>
       <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.05)"></div>
       <svg style="position:absolute;top:0;left:0;width:100%;height:100%;" viewBox="0 0 361 400">
