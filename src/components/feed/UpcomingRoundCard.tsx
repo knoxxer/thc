@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/format";
 import type { UpcomingRoundRsvp, RsvpWithPlayer, UpcomingRoundWithOrganizer } from "@/lib/types";
 
 interface UpcomingRoundCardProps {
@@ -50,7 +51,6 @@ export default function UpcomingRoundCard({
     const supabase = createClient();
 
     if (myRsvp && myRsvp.status === status) {
-      // Remove RSVP
       setRsvps((prev) => prev.filter((r) => r.id !== myRsvp.id));
 
       const { error } = await supabase
@@ -62,7 +62,6 @@ export default function UpcomingRoundCard({
         setRsvps((prev) => [...prev, myRsvp]);
       }
     } else {
-      // Upsert RSVP
       const { data, error } = await supabase
         .from("upcoming_round_rsvps")
         .upsert(
@@ -87,18 +86,13 @@ export default function UpcomingRoundCard({
           ];
         });
 
-        // Notify organizer (if not self)
         if (currentPlayerId !== round.player_id) {
-          fetch("/api/notifications", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: "rsvp",
-              targetPlayerId: round.player_id,
-              title: `Someone RSVP'd "${status}" to your round at ${round.course_name}`,
-              link: "/feed",
-            }),
-          }).catch(() => {});
+          sendNotification({
+            type: "rsvp",
+            targetPlayerId: round.player_id,
+            title: `Someone RSVP'd "${status}" to your round at ${round.course_name}`,
+            link: "/feed",
+          });
         }
       }
     }
@@ -126,7 +120,6 @@ export default function UpcomingRoundCard({
         </p>
       )}
 
-      {/* RSVP buttons */}
       {currentPlayerId && (
         <div className="flex gap-2 mb-3">
           {STATUS_OPTIONS.map((opt) => (
@@ -150,7 +143,6 @@ export default function UpcomingRoundCard({
         </div>
       )}
 
-      {/* Who's going */}
       {goingPlayers.length > 0 && (
         <p className="text-xs text-muted">
           <span className="text-green-400">{goingPlayers.length} going</span>

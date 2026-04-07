@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
 import { syncAllPlayers, syncPlayer } from "@/lib/ghin/sync";
-import { createClient } from "@supabase/supabase-js";
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
+import { getServiceClient } from "@/lib/supabase/service";
 
 // Vercel cron calls GET
 export async function GET(request: Request) {
