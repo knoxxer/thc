@@ -109,8 +109,6 @@ export default function ReactionBar({
         .single();
 
       if (error) {
-        console.error("Reaction insert failed:", error);
-        alert(`Reaction failed: ${error.message}`);
         setReactions((prev) => prev.filter((r) => r.id !== tempId));
       } else if (data) {
         setReactions((prev) =>
