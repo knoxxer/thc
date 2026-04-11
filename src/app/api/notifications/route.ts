@@ -55,7 +55,7 @@ export async function GET() {
   ]);
 
   if (notifResult.error) {
-    return NextResponse.json({ error: notifResult.error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 });
   }
 
   return NextResponse.json({
@@ -80,7 +80,7 @@ export async function PATCH(request: Request) {
       .eq("is_read", false);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to update" }, { status: 500 });
     }
   } else if (id) {
     const { error } = await supabase
@@ -90,7 +90,7 @@ export async function PATCH(request: Request) {
       .eq("player_id", player.id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to update" }, { status: 500 });
     }
   }
 
@@ -103,14 +103,13 @@ export async function POST(request: Request) {
   if (authError) return authError;
 
   const body = await request.json();
-  const { type, targetPlayerId, title, notifBody, link, metadata, notifyAll } =
+  const { type, targetPlayerId, title, notifBody, link, notifyAll } =
     body as {
       type: string;
       targetPlayerId?: string;
       title: string;
       notifBody?: string;
       link?: string;
-      metadata?: Record<string, unknown>;
       notifyAll?: boolean;
     };
 
@@ -118,24 +117,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid notification type" }, { status: 400 });
   }
 
+  // Sanitize: enforce max lengths
+  const safeTitle = (title ?? "").slice(0, 200);
+  const safeBody = notifBody?.slice(0, 500);
+  // Only allow relative links (prevent external phishing URLs)
+  const safeLink = link && link.startsWith("/") && !link.startsWith("//") ? link : undefined;
+
   const validType = type as NotificationType;
+
+  // Callers cannot target themselves
+  if (targetPlayerId === player.id) {
+    return NextResponse.json({ success: true });
+  }
 
   if (notifyAll) {
     await createNotificationsForAll(player.id, {
       type: validType,
-      title,
-      body: notifBody,
-      link,
-      metadata,
+      title: safeTitle,
+      body: safeBody,
+      link: safeLink,
     });
   } else if (targetPlayerId) {
     await createNotification({
       playerId: targetPlayerId,
       type: validType,
-      title,
-      body: notifBody,
-      link,
-      metadata,
+      title: safeTitle,
+      body: safeBody,
+      link: safeLink,
     });
   }
 
