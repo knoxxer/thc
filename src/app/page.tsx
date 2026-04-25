@@ -1,9 +1,15 @@
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import LeaderboardTable from "@/components/leaderboard/LeaderboardTable";
+import SyncStatusBadge from "@/components/SyncStatusBadge";
 import { Season, SeasonStanding, Player } from "@/lib/types";
 
 export const revalidate = 60;
+
+type SyncRunRow = {
+  ran_at: string;
+  status: "success" | "partial" | "failed";
+};
 
 export default async function Home() {
   const supabase = await createClient();
@@ -31,6 +37,13 @@ export default async function Home() {
   const playersWithoutRounds = ((allPlayers as Player[]) || []).filter(
     (p) => !standings.some((s) => s.player_id === p.id)
   );
+
+  const { data: lastSync } = await supabase
+    .from("ghin_sync_runs")
+    .select("ran_at, status")
+    .order("ran_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<SyncRunRow>();
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
@@ -69,6 +82,10 @@ export default async function Home() {
         <p className="text-xs text-muted">
           Updated {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
         </p>
+        <SyncStatusBadge
+          ranAt={lastSync?.ran_at ?? null}
+          status={lastSync?.status ?? null}
+        />
         {playersWithoutRounds.length > 0 && (
           <p className="text-sm text-muted">
             Still waiting on:{" "}

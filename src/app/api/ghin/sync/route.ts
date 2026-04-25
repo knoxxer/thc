@@ -1,6 +1,43 @@
 import { NextResponse } from "next/server";
-import { syncAllPlayers, syncPlayer } from "@/lib/ghin/sync";
+import { syncAllPlayers, syncPlayer, type SyncResult } from "@/lib/ghin/sync";
 import { getServiceClient } from "@/lib/supabase/service";
+
+type SyncStatus = "success" | "partial" | "failed";
+
+async function recordSyncRun(
+  status: SyncStatus,
+  playersSynced: number,
+  scoresImported: number,
+  errorMessage: string | null
+) {
+  try {
+    const supabase = getServiceClient();
+    await supabase.from("ghin_sync_runs").insert({
+      status,
+      players_synced: playersSynced,
+      scores_imported: scoresImported,
+      error_message: errorMessage,
+    });
+  } catch (err) {
+    console.error("[ghin/sync] failed to record run:", err);
+  }
+}
+
+function summarize(results: SyncResult[]): {
+  status: SyncStatus;
+  imported: number;
+  errorMessage: string | null;
+} {
+  const imported = results.reduce((s, r) => s + r.scoresImported, 0);
+  const allErrors = results.flatMap((r) =>
+    r.errors.map((e) => `${r.player}: ${e}`)
+  );
+  return {
+    status: allErrors.length > 0 ? "partial" : "success",
+    imported,
+    errorMessage: allErrors.length > 0 ? allErrors.join("\n") : null,
+  };
+}
 
 // Vercel cron calls GET
 export async function GET(request: Request) {
@@ -12,8 +49,12 @@ export async function GET(request: Request) {
 
   try {
     const results = await syncAllPlayers();
+    const { status, imported, errorMessage } = summarize(results);
+    await recordSyncRun(status, results.length, imported, errorMessage);
     return NextResponse.json({ results });
   } catch (err) {
+    console.error("[ghin/sync] cron failed:", err);
+    await recordSyncRun("failed", 0, 0, String(err));
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }
@@ -66,9 +107,13 @@ export async function POST(request: Request) {
     } else {
       // Sync all players
       const results = await syncAllPlayers();
+      const { status, imported, errorMessage } = summarize(results);
+      await recordSyncRun(status, results.length, imported, errorMessage);
       return NextResponse.json({ results });
     }
   } catch (err) {
+    console.error("[ghin/sync] manual sync failed:", err);
+    await recordSyncRun("failed", 0, 0, String(err));
     return NextResponse.json(
       { error: String(err) },
       { status: 500 }
