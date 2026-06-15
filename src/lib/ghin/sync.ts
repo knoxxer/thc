@@ -1,4 +1,4 @@
-import { lookupGolfer, getScores } from "./client";
+import { lookupGolfer, getScores, getScoreDetail, type GhinScore } from "./client";
 import { calculatePoints } from "../points";
 import { getServiceClient } from "../supabase/service";
 
@@ -53,12 +53,37 @@ export async function syncPlayer(
     const scores = await getScores(Number(ghinNumber), 50);
     result.scoresFound = scores.length;
 
-    // Filter to season range and 18-hole rounds only
-    const seasonScores = scores.filter((s) => {
-      if (s.number_of_holes !== 18) return false;
-      const playedDate = s.played_at;
-      return playedDate >= seasonStart && playedDate <= seasonEnd;
-    });
+    // The list endpoint returns full records (exact date + course) for some
+    // golfers but only month-level revision summaries for others — in that case
+    // played_at is "YYYY-MM" with no course_name, so it can't be date-filtered or
+    // imported as-is. For any 18-hole score whose month overlaps the season, fall
+    // back to the per-score detail endpoint, which always returns the full record.
+    const seasonStartMonth = seasonStart.slice(0, 7);
+    const seasonEndMonth = seasonEnd.slice(0, 7);
+
+    const seasonScores: GhinScore[] = [];
+    for (const s of scores) {
+      if (s.number_of_holes !== 18) continue;
+
+      // Cheap month-level pre-filter avoids a detail fetch for out-of-season rounds.
+      const playedMonth = s.played_at.slice(0, 7);
+      if (playedMonth < seasonStartMonth || playedMonth > seasonEndMonth) continue;
+
+      let score = s;
+      const isFullRecord = s.played_at.length === 10 && Boolean(s.course_name);
+      if (!isFullRecord) {
+        const detail = await getScoreDetail(s.id);
+        if (!detail) {
+          result.errors.push(`Score ${s.id}: detail lookup returned no data`);
+          continue;
+        }
+        score = detail;
+      }
+
+      if (score.played_at >= seasonStart && score.played_at <= seasonEnd) {
+        seasonScores.push(score);
+      }
+    }
 
     for (const score of seasonScores) {
       // Check if already imported
