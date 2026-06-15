@@ -117,3 +117,15 @@ export async function getScores(
   );
   return ((data as { scores?: GhinScore[] }).scores || []) as GhinScore[];
 }
+
+// The scores list endpoint only exposes full records (exact date + course) for
+// some golfers; for others it returns month-level revision summaries. The
+// per-score detail endpoint always returns the complete record, so we use it to
+// resolve those abbreviated entries. Note the response wraps a single object in
+// `scores` (not an array, as the list endpoint does).
+export async function getScoreDetail(
+  scoreId: number | string
+): Promise<GhinScore | null> {
+  const data = await ghinFetch(`/scores/${scoreId}.json`);
+  return (data as { scores?: GhinScore }).scores ?? null;
+}
